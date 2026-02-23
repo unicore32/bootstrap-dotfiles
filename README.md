@@ -92,3 +92,23 @@ git config --local core.hooksPath .githooks
 ```bash
 ALLOW_MAIN_PUSH=1 git push origin main
 ```
+
+PowerShell の場合:
+
+```powershell
+$env:ALLOW_MAIN_PUSH = "1"
+git push origin main
+Remove-Item Env:ALLOW_MAIN_PUSH
+```
+
+## Quick Branch Workflow
+
+```bash
+git switch main
+git pull --ff-only
+git switch -c feat/your-change
+# edit, commit
+git push -u origin feat/your-change
+```
+
+PR作成後、CIが通ったら `main` にマージする運用にしてください。
