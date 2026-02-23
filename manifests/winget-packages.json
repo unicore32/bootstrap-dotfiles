@@ -25,6 +25,10 @@
         {
           "PackageIdentifier": "Apple.iCloud"
         }
+        ,
+        {
+          "PackageIdentifier": "Google.JapaneseInput"
+        }
       ],
       "SourceDetails": {
         "Argument": "https://cdn.winget.microsoft.com/cache",

@@ -6,6 +6,7 @@ cask "google-chrome"
 cask "firefox"
 cask "visual-studio-code"
 cask "bitwarden"
+cask "google-japanese-input"
 
 # Note: Affinity apps are paid and may not be available via Homebrew Cask;
 # install them manually or via a MAS alternative if available.
