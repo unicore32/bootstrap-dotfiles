@@ -1,7 +1,7 @@
 # bootstrap-dotfiles
 
 Windows / macOS 向けの初期設定リポジトリです。  
-初回実行は `bootstrap.bat` または `bootstrap.sh` から行い、実体は PowerShell 7 (`pwsh`) の共通スクリプトで処理します。
+初回実行は `bootstrap.bat` または `bootstrap.sh` から行います。Windows側は PowerShell 7 (`pwsh`) を利用しますが、macOS 側は標準の `bash`/`zsh` で動作します（`pwsh` は必須ではありません）。
 
 ## Scope
 
@@ -15,10 +15,9 @@ Windows / macOS 向けの初期設定リポジトリです。
 
 ## Requirements
 
-- PowerShell 7 (`pwsh`)
 - `git`
-- Windows: `winget`
-- macOS: `brew`
+- Windows: `winget`, PowerShell 7 (`pwsh`) is recommended (installer prompt is offered on Windows).
+- macOS: `brew` and a POSIX shell (`bash`/`zsh`) — `pwsh` is optional on macOS.
 - dotfiles適用時: `chezmoi`
 
 ## Usage

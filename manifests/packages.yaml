@@ -24,7 +24,6 @@ windows:
     - Mozilla.Firefox
     - Microsoft.VisualStudioCode
     - Bitwarden.Bitwarden
-    - Apple.iCloud
     - Google.JapaneseInput
 
 profiles:

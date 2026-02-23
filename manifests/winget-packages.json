@@ -22,9 +22,7 @@
         {
           "PackageIdentifier": "Bitwarden.Bitwarden"
         },
-        {
-          "PackageIdentifier": "Apple.iCloud"
-        }
+        
         ,
         {
           "PackageIdentifier": "Google.JapaneseInput"
