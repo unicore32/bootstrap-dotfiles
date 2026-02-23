@@ -61,3 +61,17 @@ chmod +x bootstrap.sh
 
 - 再実行前提（idempotent）で運用する想定です。
 - `manifests/packages.yaml` は正本として管理し、必要に応じて `Brewfile` / `winget` manifest を同期してください。
+
+## CI / PR Flow
+
+- GitHub Actions: `.github/workflows/ci.yml`
+- 検証内容:
+	- Windows: `bootstrap.bat` の DryRun
+	- macOS: `bootstrap.sh` の DryRun
+	- Ubuntu: `chezmoi doctor` と `chezmoi apply --dry-run`
+- 推奨運用:
+	1. `main` から作業ブランチを切る
+	2. PR を作成して CI 通過を確認する
+	3. `main` へマージする
+
+`main` 直pushを避けたい場合は、GitHub の Branch protection で `Require status checks to pass before merging` を有効化してください。

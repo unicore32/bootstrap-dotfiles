@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  bootstrap-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run bootstrap.bat dry-run (personal)
+        shell: pwsh
+        run: .\bootstrap.bat -Profile personal -DryRun
+
+      - name: Run bootstrap.bat dry-run (work packages)
+        shell: pwsh
+        run: .\bootstrap.bat -Profile work -Only packages -DryRun
+
+  bootstrap-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run bootstrap.sh dry-run (personal)
+        shell: bash
+        run: |
+          chmod +x ./bootstrap.sh
+          ./bootstrap.sh -Profile personal -DryRun
+
+      - name: Run bootstrap.sh dry-run (work packages)
+        shell: bash
+        run: ./bootstrap.sh -Profile work -Only packages -DryRun
+
+  chezmoi-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install chezmoi
+        shell: bash
+        run: |
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Check chezmoi health
+        shell: bash
+        run: chezmoi doctor
+
+      - name: Validate source state rendering
+        shell: bash
+        run: |
+          export HOME="$RUNNER_TEMP/home"
+          mkdir -p "$HOME"
+          chezmoi init --source "$GITHUB_WORKSPACE/dotfiles"
+          chezmoi apply --dry-run --verbose
