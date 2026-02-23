@@ -75,3 +75,40 @@ chmod +x bootstrap.sh
 	3. `main` へマージする
 
 `main` 直pushを避けたい場合は、GitHub の Branch protection で `Require status checks to pass before merging` を有効化してください。
+
+## Local Guard (free)
+
+Branch protection が使えない場合でも、このリポジトリではローカル Git hook で `main` / `master` への直pushをブロックできます。
+
+- hook: `.githooks/pre-push`
+- 有効化コマンド:
+
+```bash
+git config --local core.hooksPath .githooks
+```
+
+意図して `main` に push したい場合だけ、次のように一時的に許可できます。
+
+```bash
+ALLOW_MAIN_PUSH=1 git push origin main
+```
+
+PowerShell の場合:
+
+```powershell
+$env:ALLOW_MAIN_PUSH = "1"
+git push origin main
+Remove-Item Env:ALLOW_MAIN_PUSH
+```
+
+## Quick Branch Workflow
+
+```bash
+git switch main
+git pull --ff-only
+git switch -c feat/your-change
+# edit, commit
+git push -u origin feat/your-change
+```
+
+PR作成後、CIが通ったら `main` にマージする運用にしてください。

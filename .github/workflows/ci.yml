@@ -37,6 +37,8 @@ jobs:
 
   chezmoi-validate:
     runs-on: ubuntu-latest
+    env:
+      HOME: ${{ runner.temp }}/home
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,14 +49,16 @@ jobs:
           sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
+      - name: Initialize chezmoi source
+        shell: bash
+        run: |
+          mkdir -p "$HOME"
+          chezmoi init --source "$GITHUB_WORKSPACE/dotfiles"
+
       - name: Check chezmoi health
         shell: bash
         run: chezmoi doctor
 
       - name: Validate source state rendering
         shell: bash
-        run: |
-          export HOME="$RUNNER_TEMP/home"
-          mkdir -p "$HOME"
-          chezmoi init --source "$GITHUB_WORKSPACE/dotfiles"
-          chezmoi apply --dry-run --verbose
+        run: chezmoi apply --dry-run --verbose
