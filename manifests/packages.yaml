@@ -1,0 +1,30 @@
+common:
+  cli:
+    - Git.Git
+    - JanDeDobbeleer.OhMyPosh
+
+macos:
+  brew:
+    - git
+    - gh
+
+windows:
+  winget:
+    - Git.Git
+    - GitHub.cli
+
+profiles:
+  work:
+    macos:
+      brew:
+        - awscli
+    windows:
+      winget:
+        - Amazon.AWSCLI
+  personal:
+    macos:
+      brew:
+        - mas
+    windows:
+      winget:
+        - Microsoft.PowerToys
