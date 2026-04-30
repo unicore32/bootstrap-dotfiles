@@ -33,11 +33,26 @@ bootstrap.bat -Only dotfiles
 ### macOS
 
 ```bash
+
+**macOS の設定**
+
+- このリポジトリでは macOS 用にシェルベースの manifest をサポートします。
+- サンプル manifest: `manifests/macos-settings.sh`（`defaults write` 等の安全なコマンドを想定）。
+- 実行方法:
+
+	- ドライラン（表示のみ）:
+		```bash
+		./bootstrap.sh -Only windows-settings -DryRun
+		```
+
+	- 適用（macOS）:
+		```bash
+		./bootstrap.sh -Only windows-settings
+		```
+
+	※ macOS 実行時は `bootstrap.sh` がネイティブシェルランナーを使います（`pwsh` は必須ではありません）。
 chmod +x bootstrap.sh
 ./bootstrap.sh -Profile work -DryRun
-./bootstrap.sh -Profile personal -Only packages
-./bootstrap.sh -Only dotfiles
-```
 
 ## Arguments
 
