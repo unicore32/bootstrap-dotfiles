@@ -33,6 +33,11 @@ bootstrap.bat -Only dotfiles
 ### macOS
 
 ```bash
+chmod +x bootstrap.sh
+./bootstrap.sh -Profile work -DryRun
+./bootstrap.sh -Profile personal -Only packages
+./bootstrap.sh -Only dotfiles
+```
 
 **macOS の設定**
 
@@ -42,17 +47,15 @@ bootstrap.bat -Only dotfiles
 
 	- ドライラン（表示のみ）:
 		```bash
-		./bootstrap.sh -Only windows-settings -DryRun
+		./bootstrap.sh -Only packages -DryRun
 		```
 
 	- 適用（macOS）:
 		```bash
-		./bootstrap.sh -Only windows-settings
+		./bootstrap.sh -Only packages
 		```
 
-	※ macOS 実行時は `bootstrap.sh` がネイティブシェルランナーを使います（`pwsh` は必須ではありません）。
-chmod +x bootstrap.sh
-./bootstrap.sh -Profile work -DryRun
+	※ macOS 実行時は `bootstrap.sh` がネイティブシェルランナーを使います（`pwsh` があれば PowerShell 版を優先実行します）。
 
 ## Arguments
 
