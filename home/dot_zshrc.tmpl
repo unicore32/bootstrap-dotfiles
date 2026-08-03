@@ -1,0 +1,26 @@
+export EDITOR="code --wait"
+export VISUAL="$EDITOR"
+
+alias ll="ls -lah"
+alias g="git"
+
+# Keep interactive startup declarative and framework-free. Automation belongs in Bash.
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
+fi
+
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
+
+if command -v atuin >/dev/null 2>&1; then
+  eval "$(atuin init zsh)"
+fi
+
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+fi
+
+if [[ -f "$HOME/.config/shell/local.zsh" ]]; then
+  source "$HOME/.config/shell/local.zsh"
+fi

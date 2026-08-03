@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Check shell scripts
+        run: shellcheck bootstrap.sh bootstrap/*.sh scripts/*.sh
+      - name: Check Bash syntax
+        run: bash -n bootstrap.sh bootstrap/*.sh scripts/*.sh
+
+  powershell:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check PowerShell syntax
+        shell: pwsh
+        run: |
+          $failed = $false
+          Get-ChildItem -Recurse -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile(
+              $_.FullName, [ref]$tokens, [ref]$errors
+            )
+            if ($errors) {
+              $errors | ForEach-Object { Write-Error $_ }
+              $failed = $true
+            }
+          }
+          if ($failed) { exit 1 }
+

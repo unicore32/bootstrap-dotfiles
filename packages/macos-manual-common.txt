@@ -1,0 +1,2 @@
+# Common macOS applications without a stable package-manager route.
+KensingtonWorks | https://www.kensington.com/kensingtonworks

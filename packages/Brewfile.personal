@@ -1,0 +1,4 @@
+cask "krita"
+cask "vlc"
+
+mas "LINE", id: 539883307

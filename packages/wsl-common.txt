@@ -1,0 +1,10 @@
+build-essential
+curl
+fzf
+git
+jq
+ripgrep
+shellcheck
+unzip
+zsh
+

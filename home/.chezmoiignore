@@ -1,0 +1,13 @@
+{{ if ne .profile "personal" }}
+.config/shell/local.zsh
+.config/git/local.gitconfig
+{{ end }}
+
+{{ if ne .chezmoi.os "darwin" }}
+Library/**
+{{ end }}
+
+{{ if ne .chezmoi.os "windows" }}
+AppData/**
+{{ end }}
+

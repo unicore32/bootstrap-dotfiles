@@ -1,0 +1,9 @@
+[tools]
+atuin = "latest"
+node = "lts"
+python = "latest"
+go = "latest"
+zoxide = "latest"
+
+[settings]
+idiomatic_version_file_enable_tools = ["node", "python"]
