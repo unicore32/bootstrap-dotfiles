@@ -1,4 +1,7 @@
 {{- $profile := promptChoiceOnce . "profile" "Select a profile" (list "personal" "work") -}}
+{{- $gitName := promptStringOnce . "gitName" "Git user name" -}}
+{{- $gitEmail := promptStringOnce . "gitEmail" "Git email address" -}}
 [data]
 profile = {{ $profile | quote }}
-
+gitName = {{ $gitName | quote }}
+gitEmail = {{ $gitEmail | quote }}

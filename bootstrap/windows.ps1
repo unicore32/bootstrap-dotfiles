@@ -102,10 +102,13 @@ function Install-Dotfiles {
     }
     $source = Join-Path $RootDir "home"
     $config = Join-Path $HOME ".config/chezmoi/chezmoi.toml"
-    if (-not (Test-Path -LiteralPath $config)) {
-        Invoke-Step -Description "chezmoi init (profile=$Profile)" `
-            -Action { & chezmoi init --source $source --promptChoice "profile=$Profile" }
+    if ($DryRun -and -not (Test-Path -LiteralPath $config)) {
+        Write-Step "[dry-run] chezmoi init (profile=$Profile; Git identity prompts)"
+        Write-Step "[dry-run] chezmoi apply skipped because no config exists yet"
+        return
     }
+    Invoke-Step -Description "chezmoi init (profile=$Profile)" `
+        -Action { & chezmoi init --source $source --promptChoice "Select a profile=$Profile" }
     if ($DryRun) {
         & chezmoi apply --source $source --dry-run --verbose
     }

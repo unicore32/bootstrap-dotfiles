@@ -41,9 +41,13 @@ apply_dotfiles() {
     die 'chezmoi is not installed'
   fi
   local args=(--source "$ROOT_DIR/home")
-  if [[ ! -f "${XDG_CONFIG_HOME:-$HOME/.config}/chezmoi/chezmoi.toml" ]]; then
-    run chezmoi init "${args[@]}" --promptChoice "profile=$PROFILE"
+  local config_file="${XDG_CONFIG_HOME:-$HOME/.config}/chezmoi/chezmoi.toml"
+  if [[ "$DRY_RUN" == "true" && ! -f "$config_file" ]]; then
+    log "[dry-run] chezmoi init (profile=$PROFILE; Git identity prompts)"
+    log '[dry-run] chezmoi apply skipped because no config exists yet'
+    return
   fi
+  run chezmoi init "${args[@]}" --promptChoice "Select a profile=$PROFILE"
   if [[ "$DRY_RUN" == "true" ]]; then
     chezmoi apply "${args[@]}" --dry-run --verbose
   else
