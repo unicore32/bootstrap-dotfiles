@@ -15,9 +15,9 @@ jobs:
       - name: Install shellcheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: Check shell scripts
-        run: shellcheck bootstrap.sh bootstrap/*.sh scripts/*.sh settings/macos/*.sh
+        run: shellcheck install-macos.sh bootstrap.sh bootstrap/*.sh scripts/*.sh settings/macos/*.sh
       - name: Check Bash syntax
-        run: bash -n bootstrap.sh bootstrap/*.sh scripts/*.sh settings/macos/*.sh
+        run: bash -n install-macos.sh bootstrap.sh bootstrap/*.sh scripts/*.sh settings/macos/*.sh
 
   powershell:
     runs-on: windows-latest

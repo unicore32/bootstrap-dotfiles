@@ -79,6 +79,7 @@ The selected profile is stored by chezmoi during initial configuration. Changing
 bootstrap-dotfiles/
 ├── README.md                    # Canonical project and contributor documentation
 ├── AGENTS.md                    # Instructions for AI coding agents
+├── install-macos.sh             # Remote macOS Stage 0 installer
 ├── bootstrap.sh                # macOS/WSL dispatcher
 ├── bootstrap.ps1               # Windows dispatcher
 ├── bootstrap/
@@ -134,6 +135,22 @@ All environments require network access and Git to clone this repository.
 Start with a dry run. Review package manifests before executing a real installation.
 
 ### 🍎 macOS
+
+After the desired revision has been pushed to `main`, start a personal installation with one command:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/unicore32/bootstrap-dotfiles/main/install-macos.sh)" -- --profile personal
+```
+
+The Stage 0 installer prepares Homebrew and Git, clones or fast-forward updates the repository at `~/.local/share/bootstrap-dotfiles`, and starts Stage 1. It can trigger interactive Command Line Tools, `sudo`, App Store, and macOS permission prompts; those prompts are intentionally not bypassed.
+
+To inspect Stage 0 without changing the machine:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/unicore32/bootstrap-dotfiles/main/install-macos.sh)" -- --profile personal --dry-run
+```
+
+Manual clone remains supported:
 
 ```bash
 git clone https://github.com/unicore32/bootstrap-dotfiles.git
@@ -291,7 +308,7 @@ Do not put secrets in templates. A profile exclusion is not a security boundary 
 Run the checks relevant to the edited platform:
 
 ```bash
-bash -n bootstrap.sh bootstrap/*.sh scripts/*.sh settings/macos/*.sh
+bash -n install-macos.sh bootstrap.sh bootstrap/*.sh scripts/*.sh settings/macos/*.sh
 bash bootstrap.sh install --profile personal --dry-run
 ```
 
