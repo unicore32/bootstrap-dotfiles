@@ -158,7 +158,21 @@ function Invoke-HealthCheck {
         & chezmoi doctor
         if ($LASTEXITCODE -ne 0) { $failed = $true }
     }
+    if ($Profile -eq "personal") {
+        try {
+            & (Join-Path $RootDir "settings/windows/ntp.ps1") -CheckOnly
+        }
+        catch {
+            Write-Warning $_
+            $failed = $true
+        }
+    }
     if ($failed) { throw "One or more health checks failed." }
+}
+
+function Set-PersonalNtp {
+    if ($Profile -ne "personal") { return }
+    & (Join-Path $RootDir "settings/windows/ntp.ps1") -DryRun:$DryRun
 }
 
 if ($Command -eq "check") {
@@ -172,6 +186,7 @@ if ($Target -in @("windows", "all")) {
     Install-Dotfiles
     Install-MiseTools
     Install-VSCodeExtensions
+    Set-PersonalNtp
 }
 if ($Target -in @("wsl", "all")) {
     Invoke-WSLBootstrap

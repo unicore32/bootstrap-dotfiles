@@ -22,8 +22,9 @@ This file defines repository-specific instructions for AI coding agents. Read `R
 - Prefer convergent, rerunnable operations and do not automatically remove undeclared software.
 - Update `README.md` when commands, ownership, architecture, or development rules change.
 - Never depend on files under the ignored `private/` directory.
+- Apply the custom NTP server only to `personal` macOS and Windows hosts. Do not configure NTP in WSL or the `work` profile.
+- Keep macOS natural scrolling disabled for both `personal` and `work` profiles. Do not apply this preference to Windows or WSL.
 
 ## Required validation
 
 Run the applicable syntax checks, bootstrap dry run, and `git diff --check`. Report any platform behavior that could not be tested.
-

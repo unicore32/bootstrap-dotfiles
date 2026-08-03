@@ -111,6 +111,10 @@ bootstrap-dotfiles/
 ├── scripts/
 │   ├── lib.sh                  # Shared Bash helpers
 │   └── health-check.sh
+├── settings/
+│   ├── macos/ntp.sh            # Personal macOS NTP convergence
+│   ├── macos/natural-scroll.sh # Common macOS scrolling preference
+│   └── windows/ntp.ps1         # Personal Windows NTP convergence
 └── .github/workflows/ci.yml
 ```
 
@@ -150,6 +154,8 @@ Set-Location bootstrap-dotfiles
 ```
 
 Available targets are `windows`, `wsl`, and `all`. A newly installed command may not become visible to the current PowerShell process; reopen the terminal and rerun the same command when instructed.
+
+Run a real `personal` Windows installation from an elevated PowerShell session when the NTP setting is not already configured. Dry runs do not require elevation.
 
 ### 🐧 WSL
 
@@ -216,6 +222,27 @@ Current convergence behavior:
 - Profile switching on an already initialized machine is not fully implemented.
 
 The safe policy is: automatically add missing declared state, never automatically delete extra software, and report drift before destructive reconciliation. Future strict-idempotency work should add profile validation, extension diffing, package drift reporting, and a CI test proving that a second apply produces no managed-file changes.
+
+## 🕐 Network time
+
+Personal macOS and Windows hosts use `ntp.jst.mfeed.ad.jp` as their NTP server.
+
+- 🍎 macOS uses `systemsetup` and prompts for `sudo` only when the personal NTP step runs or is checked.
+- 🪟 Windows uses W32Time and requires an elevated PowerShell session when the current configuration must change.
+- 🐧 WSL is not configured separately; the Windows host owns time synchronization.
+- 🏢 The `work` profile never changes NTP because company policy, MDM, or an Active Directory domain may own it.
+
+The scripts compare current state before applying a change. A dry run prints the intended operation without requesting elevation or changing system state.
+
+## 🖱️ macOS preferences
+
+Natural scrolling is disabled on macOS for both `personal` and `work` profiles. The setting is applied to the current user and does not require administrator privileges.
+
+```text
+NSGlobalDomain com.apple.swipescrolldirection = false
+```
+
+The script changes the preference only when necessary. Restart affected applications or log in again if the scrolling direction does not change immediately. Windows and WSL are not affected.
 
 ## 🧩 Configuration ownership and overlays
 

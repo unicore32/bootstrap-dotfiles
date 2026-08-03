@@ -53,7 +53,10 @@ install_packages() {
 
 main() {
   if [[ "$COMMAND" == "check" ]]; then
-    exec bash "$ROOT_DIR/scripts/health-check.sh" --platform macos --profile "$PROFILE"
+    bash "$ROOT_DIR/scripts/health-check.sh" --platform macos --profile "$PROFILE"
+    bash "$ROOT_DIR/settings/macos/natural-scroll.sh" --check
+    [[ "$PROFILE" == "personal" ]] && bash "$ROOT_DIR/settings/macos/ntp.sh" --check
+    return
   fi
   install_homebrew
   install_packages
@@ -61,6 +64,18 @@ main() {
   install_mise_tools
   install_vscode_extensions "$ROOT_DIR/vscode/extensions-common.txt" \
     "$([[ "$PROFILE" == personal ]] && echo "$ROOT_DIR/vscode/extensions-personal.txt")"
+  if [[ "$DRY_RUN" == "true" ]]; then
+    bash "$ROOT_DIR/settings/macos/natural-scroll.sh" --dry-run
+  else
+    bash "$ROOT_DIR/settings/macos/natural-scroll.sh"
+  fi
+  if [[ "$PROFILE" == "personal" ]]; then
+    if [[ "$DRY_RUN" == "true" ]]; then
+      bash "$ROOT_DIR/settings/macos/ntp.sh" --dry-run
+    else
+      bash "$ROOT_DIR/settings/macos/ntp.sh"
+    fi
+  fi
   [[ "$DRY_RUN" == "true" ]] && { log 'dry-run completed'; return; }
   bash "$ROOT_DIR/scripts/health-check.sh" --platform macos --profile "$PROFILE"
 }
