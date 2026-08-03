@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck source=../scripts/lib.sh
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly ROOT_DIR
+# ROOT_DIR is resolved at runtime from this script's location.
+# shellcheck disable=SC1091
 source "$ROOT_DIR/scripts/lib.sh"
 
 COMMAND="install"

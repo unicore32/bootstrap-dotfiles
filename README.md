@@ -291,7 +291,7 @@ Do not put secrets in templates. A profile exclusion is not a security boundary 
 Run the checks relevant to the edited platform:
 
 ```bash
-bash -n bootstrap.sh bootstrap/*.sh scripts/*.sh
+bash -n bootstrap.sh bootstrap/*.sh scripts/*.sh settings/macos/*.sh
 bash bootstrap.sh install --profile personal --dry-run
 ```
 
