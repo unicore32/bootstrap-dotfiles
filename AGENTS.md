@@ -24,6 +24,7 @@ This file defines repository-specific instructions for AI coding agents. Read `R
 - Never depend on files under the ignored `private/` directory.
 - Apply the custom NTP server only to `personal` macOS and Windows hosts. Do not configure NTP in WSL or the `work` profile.
 - Keep macOS natural scrolling disabled for both `personal` and `work` profiles. Do not apply this preference to Windows or WSL.
+- Apply the declared Dock and Finder preferences to both macOS profiles. Finder sidebar Recents is intentionally unmanaged until a stable interface is selected.
 
 ## Required validation
 

@@ -56,6 +56,8 @@ install_packages() {
 main() {
   if [[ "$COMMAND" == "check" ]]; then
     bash "$ROOT_DIR/scripts/health-check.sh" --platform macos --profile "$PROFILE"
+    bash "$ROOT_DIR/settings/macos/dock.sh" --check
+    bash "$ROOT_DIR/settings/macos/finder.sh" --check
     bash "$ROOT_DIR/settings/macos/natural-scroll.sh" --check
     [[ "$PROFILE" == "personal" ]] && bash "$ROOT_DIR/settings/macos/ntp.sh" --check
     return
@@ -67,8 +69,12 @@ main() {
   install_vscode_extensions "$ROOT_DIR/vscode/extensions-common.txt" \
     "$([[ "$PROFILE" == personal ]] && echo "$ROOT_DIR/vscode/extensions-personal.txt")"
   if [[ "$DRY_RUN" == "true" ]]; then
+    bash "$ROOT_DIR/settings/macos/dock.sh" --dry-run
+    bash "$ROOT_DIR/settings/macos/finder.sh" --dry-run
     bash "$ROOT_DIR/settings/macos/natural-scroll.sh" --dry-run
   else
+    bash "$ROOT_DIR/settings/macos/dock.sh"
+    bash "$ROOT_DIR/settings/macos/finder.sh"
     bash "$ROOT_DIR/settings/macos/natural-scroll.sh"
   fi
   if [[ "$PROFILE" == "personal" ]]; then

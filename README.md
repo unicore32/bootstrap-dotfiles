@@ -114,6 +114,8 @@ bootstrap-dotfiles/
 │   └── health-check.sh
 ├── settings/
 │   ├── macos/ntp.sh            # Personal macOS NTP convergence
+│   ├── macos/dock.sh           # Common Dock preferences
+│   ├── macos/finder.sh         # Common Finder preferences
 │   ├── macos/natural-scroll.sh # Common macOS scrolling preference
 │   └── windows/ntp.ps1         # Personal Windows NTP convergence
 └── .github/workflows/ci.yml
@@ -253,13 +255,30 @@ The scripts compare current state before applying a change. A dry run prints the
 
 ## 🖱️ macOS preferences
 
-Natural scrolling is disabled on macOS for both `personal` and `work` profiles. The setting is applied to the current user and does not require administrator privileges.
+The following current-user preferences apply to both `personal` and `work` profiles and do not require administrator privileges.
+
+### Dock
+
+- Icon size: `28` points, representing a small Dock of roughly 10% on the settings slider.
+- Magnified icon size: `72` points, representing roughly 50% on the magnification slider.
+- Magnification: enabled.
+- Automatically hide and show the Dock: enabled.
+
+### Finder
+
+- New Finder windows show the startup volume (`Macintosh HD`, represented by `file:///`).
+- All filename extensions are visible.
+- Finder sidebar Recents is intentionally not managed yet.
+
+### Scrolling
+
+Natural scrolling is disabled.
 
 ```text
 NSGlobalDomain com.apple.swipescrolldirection = false
 ```
 
-The script changes the preference only when necessary. Restart affected applications or log in again if the scrolling direction does not change immediately. Windows and WSL are not affected.
+The scripts change preferences only when necessary. Dock and Finder restart only after their settings change. Restart other affected applications or log in again if the scrolling direction does not change immediately. Windows and WSL are not affected.
 
 ## 🧩 Configuration ownership and overlays
 
