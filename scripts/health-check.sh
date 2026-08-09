@@ -22,10 +22,10 @@ check_command() {
 }
 
 check_any_command() {
-  local command
-  for command in "$@"; do
-    if command -v "$command" >/dev/null 2>&1; then
-      printf '[ok]      %s\n' "$command"
+  local cmd
+  for cmd in "$@"; do
+    if command -v "$cmd" >/dev/null 2>&1; then
+      printf '[ok]      %s\n' "$cmd"
       return
     fi
   done

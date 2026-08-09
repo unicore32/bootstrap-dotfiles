@@ -79,7 +79,7 @@ main() {
   [[ "$DRY_RUN" == "true" ]] && { log 'dry-run completed'; return; }
   bash "$ROOT_DIR/scripts/health-check.sh" --platform wsl --profile "$PROFILE"
   if [[ "${SHELL:-}" != "$(command -v zsh)" ]]; then
-    log "zsh is installed. To make it your login shell, run: chsh -s $(command -v zsh)"
+    log "zsh is installed. To make it your login shell, run: chsh -s \"$(command -v zsh)\""
   fi
 }
 

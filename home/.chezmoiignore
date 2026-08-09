@@ -1,11 +1,6 @@
 {{ if ne .profile "personal" }}
 .config/shell/local.zsh
 .config/git/local.gitconfig
-.config/mise/personal-wsl.toml
-{{ end }}
-
-{{ if ne .chezmoi.os "linux" }}
-.config/mise/personal-wsl.toml
 {{ end }}
 
 {{ if or (ne .profile "personal") (eq .chezmoi.os "windows") }}
