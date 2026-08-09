@@ -1,10 +1,13 @@
 build-essential
+bat
 curl
 fzf
 git
 jq
 ripgrep
 shellcheck
+starship
 unzip
 zsh
-
+zsh-autosuggestions
+zsh-syntax-highlighting

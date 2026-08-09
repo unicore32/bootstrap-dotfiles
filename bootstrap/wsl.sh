@@ -66,11 +66,21 @@ main() {
   fi
   apply_dotfiles
   install_mise_tools
+  if [[ "$PROFILE" == "personal" ]]; then
+    if [[ "$DRY_RUN" == "true" ]]; then
+      log "[dry-run] MISE_CONFIG_FILE=$ROOT_DIR/mise/personal-wsl.toml mise install"
+    else
+      MISE_CONFIG_FILE="$ROOT_DIR/mise/personal-wsl.toml" mise install
+    fi
+  fi
   install_vscode_extensions "$ROOT_DIR/vscode/extensions-common.txt" \
     "$ROOT_DIR/vscode/extensions-wsl.txt" \
     "$([[ "$PROFILE" == personal ]] && echo "$ROOT_DIR/vscode/extensions-personal.txt")"
   [[ "$DRY_RUN" == "true" ]] && { log 'dry-run completed'; return; }
   bash "$ROOT_DIR/scripts/health-check.sh" --platform wsl --profile "$PROFILE"
+  if [[ "${SHELL:-}" != "$(command -v zsh)" ]]; then
+    log "zsh is installed. To make it your login shell, run: chsh -s $(command -v zsh)"
+  fi
 }
 
 main

@@ -15,7 +15,6 @@
     @{ Id = "Google.Chrome"; Source = "winget" }
     @{ Id = "Google.JapaneseIME"; Source = "winget" }
     @{ Id = "Mozilla.Firefox"; Source = "winget" }
-    @{ Id = "Vivaldi.Vivaldi"; Source = "winget" }
     @{ Id = "Bitwarden.Bitwarden"; Source = "winget" }
     @{ Id = "Zoom.Zoom"; Source = "winget" }
     @{ Id = "Discord.Discord"; Source = "winget" }

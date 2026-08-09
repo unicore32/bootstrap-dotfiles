@@ -21,14 +21,35 @@ check_command() {
   fi
 }
 
+check_any_command() {
+  local command
+  for command in "$@"; do
+    if command -v "$command" >/dev/null 2>&1; then
+      printf '[ok]      %s\n' "$command"
+      return
+    fi
+  done
+  printf '[missing] %s\n' "$*"
+  failed=1
+}
+
 echo "platform=$PLATFORM profile=$PROFILE"
 for command in git chezmoi jq mise rg; do check_command "$command"; done
 [[ "$PLATFORM" == macos ]] && check_command brew
-[[ "$PLATFORM" == wsl ]] && check_command zsh
+if [[ "$PLATFORM" == macos ]]; then
+  check_command bat
+  check_command eza
+fi
+if [[ "$PLATFORM" == wsl ]]; then
+  check_command zsh
+  check_any_command bat batcat
+fi
+if [[ "$PROFILE" == personal && ( "$PLATFORM" == macos || "$PLATFORM" == wsl ) ]]; then
+  check_command herdr
+fi
 
 if command -v chezmoi >/dev/null 2>&1; then
   chezmoi doctor || failed=1
 fi
 
 exit "$failed"
-

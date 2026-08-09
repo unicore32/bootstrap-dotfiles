@@ -38,16 +38,20 @@ The shell environment is intentionally small, composable, and AI-friendly.
 | History | Atuin |
 | Directory navigation | zoxide |
 | Fuzzy selection | fzf |
+| File previews | bat |
+| Directory listings | eza (`ll` includes Git status) |
 | Runtime and project environments | mise / `mise.toml` |
 | AI-facing repository guidance | `AGENTS.md` |
 
 Oh My Zsh and large theme or plugin collections are deliberately not used. Shell behavior should remain understandable from the checked-in files without framework-specific knowledge.
 
-Optional, non-default tools are zsh-autosuggestions, zsh-syntax-highlighting, tmux, and Nushell. They must remain opt-in until explicitly added to a profile or installation interface.
+The default interactive experience includes zsh completion, fzf key bindings and completion, zsh-autosuggestions, and zsh-syntax-highlighting. tmux and Nushell remain optional tools.
 
 The operating principles are:
 
 - Humans use zsh for interactive terminal work.
+- WSL installs zsh but does not change the login shell automatically. After bootstrap, run `chsh -s "$(command -v zsh)"` and start a new terminal when you want zsh as the default.
+- zsh keeps a local fallback history in `~/.zsh_history`; Atuin provides the interactive and cross-terminal history experience. Commands prefixed with a space are excluded from the local history, but secrets should never be passed as command-line arguments.
 - Automation and bootstrap scripts use Bash.
 - Projects declare runtimes and environment tooling through `mise.toml`.
 - AI agents read `AGENTS.md` and the canonical English README before changing the repository.
@@ -108,7 +112,8 @@ bootstrap-dotfiles/
 │   ├── extensions-windows.txt
 │   └── extensions-wsl.txt
 ├── mise/
-│   └── config.toml             # Runtime source of truth
+│   ├── config.toml             # Cross-profile runtime source of truth
+│   └── personal-wsl.toml       # Personal WSL CLI tools installed by mise
 ├── scripts/
 │   ├── lib.sh                  # Shared Bash helpers
 │   └── health-check.sh
@@ -227,6 +232,7 @@ Source-of-truth mapping:
 | Windows packages | `packages/winget-*.ps1` |
 | WSL packages | `packages/wsl-*.txt` |
 | Development runtimes | `mise/config.toml` |
+| Personal WSL CLI tools | `mise/personal-wsl.toml` |
 | Managed files | `home/` |
 | VS Code extensions | `vscode/extensions-*.txt` |
 
@@ -319,6 +325,7 @@ Do not put secrets in templates. A profile exclusion is not a security boundary 
 
 - Add extension identifiers to the narrowest applicable file under `vscode/`.
 - Add cross-platform runtimes to `mise/config.toml`.
+- Add personal-only WSL CLI tools managed by mise to `mise/personal-wsl.toml`.
 - Keep `home/dot_config/mise/config.toml` consistent with the canonical runtime configuration until duplication is removed.
 - Keep interactive shell tools composable; do not add a shell framework as an implicit dependency.
 

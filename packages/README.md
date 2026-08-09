@@ -47,6 +47,12 @@ Personal applications are installed only with the `personal` profile.
 | LINE | Mac App Store `539883307` | Microsoft Store `XPFCC4CD725961` | Added to personal manifests | Homebrew Bundle uses `mas` on macOS |
 | Krita | Cask `krita` | winget `KDE.Krita` | Added to personal manifests | Available on both platforms |
 
+## Personal CLI tools
+
+| Tool | 🍎 macOS | 🐧 WSL | Manifest status | Notes |
+|---|---|---|---|---|
+| Herdr | Homebrew formula `herdr` | mise tool `herdr` | Added to personal manifests | Agent-aware terminal multiplexer; native Windows remains unmanaged |
+
 ## Special installation policies
 
 ### Bitwarden on Windows
