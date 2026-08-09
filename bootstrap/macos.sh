@@ -59,6 +59,7 @@ main() {
     bash "$ROOT_DIR/settings/macos/dock.sh" --check
     bash "$ROOT_DIR/settings/macos/finder.sh" --check
     bash "$ROOT_DIR/settings/macos/natural-scroll.sh" --check
+    [[ "$PROFILE" == "personal" ]] && bash "$ROOT_DIR/settings/macos/touch-id.sh" --check
     [[ "$PROFILE" == "personal" ]] && bash "$ROOT_DIR/settings/macos/ntp.sh" --check
     return
   fi
@@ -79,8 +80,10 @@ main() {
   fi
   if [[ "$PROFILE" == "personal" ]]; then
     if [[ "$DRY_RUN" == "true" ]]; then
+      bash "$ROOT_DIR/settings/macos/touch-id.sh" --dry-run
       bash "$ROOT_DIR/settings/macos/ntp.sh" --dry-run
     else
+      bash "$ROOT_DIR/settings/macos/touch-id.sh"
       bash "$ROOT_DIR/settings/macos/ntp.sh"
     fi
   fi

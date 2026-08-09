@@ -84,6 +84,7 @@ bootstrap-dotfiles/
 ├── README.md                    # Canonical project and contributor documentation
 ├── AGENTS.md                    # Instructions for AI coding agents
 ├── install-macos.sh             # Remote macOS Stage 0 installer
+├── install-windows.ps1          # Remote Windows Stage 0 installer
 ├── bootstrap.sh                # macOS/WSL dispatcher
 ├── bootstrap.ps1               # Windows dispatcher
 ├── bootstrap/
@@ -122,6 +123,7 @@ bootstrap-dotfiles/
 │   ├── macos/dock.sh           # Common Dock preferences
 │   ├── macos/finder.sh         # Common Finder preferences
 │   ├── macos/natural-scroll.sh # Common macOS scrolling preference
+│   ├── macos/touch-id.sh       # Personal macOS Touch ID sudo configuration
 │   └── windows/ntp.ps1         # Personal Windows NTP convergence
 └── .github/workflows/ci.yml
 ```
@@ -132,7 +134,7 @@ The ignored `private/` directory may contain local-language notes or machine-loc
 
 ### Prerequisites
 
-All environments require network access and Git to clone this repository.
+All environments require network access. The macOS and Windows Stage 0 installers install Git when it is absent; manual installation and direct WSL installation require Git before cloning this repository.
 
 - 🍎 macOS must permit Homebrew installation and usage.
 - 🪟 Windows requires winget through App Installer.
@@ -170,6 +172,22 @@ Use `--profile work` on a company-managed Mac only after confirming that the dev
 
 ### 🪟 Windows
 
+After the desired revision has been pushed to `main`, start a personal installation from PowerShell with:
+
+```powershell
+& ([scriptblock]::Create((Invoke-RestMethod -Uri "https://raw.githubusercontent.com/unicore32/bootstrap-dotfiles/main/install-windows.ps1"))) -Profile personal
+```
+
+The Stage 0 installer verifies that winget is available, installs Git when necessary, clones or fast-forward updates the repository at `%LOCALAPPDATA%\bootstrap-dotfiles`, and starts Stage 1. It may require a new PowerShell session after installing Git, WSL initialization, or elevation for the personal NTP setting; those prompts are intentionally not bypassed.
+
+To inspect Stage 0 without changing the machine:
+
+```powershell
+& ([scriptblock]::Create((Invoke-RestMethod -Uri "https://raw.githubusercontent.com/unicore32/bootstrap-dotfiles/main/install-windows.ps1"))) -Profile personal -DryRun
+```
+
+Manual clone remains supported when Git is already installed:
+
 ```powershell
 git clone https://github.com/unicore32/bootstrap-dotfiles.git
 Set-Location bootstrap-dotfiles
@@ -186,6 +204,8 @@ Run a real `personal` Windows installation from an elevated PowerShell session w
 Run directly inside WSL:
 
 ```bash
+sudo apt update
+sudo apt install -y git
 git clone https://github.com/unicore32/bootstrap-dotfiles.git
 cd bootstrap-dotfiles
 bash bootstrap.sh install --profile personal --dry-run
@@ -258,6 +278,14 @@ Personal macOS and Windows hosts use `ntp.jst.mfeed.ad.jp` as their NTP server.
 - 🏢 The `work` profile never changes NTP because company policy, MDM, or an Active Directory domain may own it.
 
 The scripts compare current state before applying a change. A dry run prints the intended operation without requesting elevation or changing system state.
+
+## 🆔 Touch ID for `sudo`
+
+Personal macOS hosts enable Touch ID for local `sudo` authentication through `/etc/pam.d/sudo_local`. The managed rule prefers Touch ID and retains password authentication as a fallback when Touch ID is unavailable, such as over SSH.
+
+- The bootstrap never edits `/etc/pam.d/sudo` directly.
+- The `work` profile does not manage this setting.
+- If an unmanaged `sudo_local` already exists without a Touch ID rule, the bootstrap stops rather than overwriting it.
 
 ## 🖱️ macOS preferences
 
