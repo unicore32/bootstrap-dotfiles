@@ -18,7 +18,8 @@
     @{ Id = "Bitwarden.Bitwarden"; Source = "winget" }
     @{ Id = "Zoom.Zoom"; Source = "winget" }
     @{ Id = "Discord.Discord"; Source = "winget" }
-    @{ Id = "9NT1R1C2HH7J"; Source = "msstore" }
+    # ChatGPT
+    @{ Id = "9PLM9XGG6VKS"; Source = "msstore" }
     @{ Id = "Apple.iTunes"; Source = "winget" }
     @{ Id = "Logitech.OptionsPlus"; Source = "winget" }
     @{ Id = "DBeaver.DBeaver.Community"; Source = "winget" }
