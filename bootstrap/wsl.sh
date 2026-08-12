@@ -10,15 +10,18 @@ source "$ROOT_DIR/scripts/lib.sh"
 COMMAND="install"
 PROFILE="personal"
 DRY_RUN="false"
+COMPONENTS=""
 
 usage() {
-  echo 'Usage: ./bootstrap.sh [install|update|check] [--profile personal|work] [--dry-run]'
+  echo 'Usage: ./bootstrap.sh [install|update] [--profile personal|work] [--components packages,dotfiles,mise,vscode,settings] [--dry-run]'
+  echo '       ./bootstrap.sh check [--profile personal|work]'
 }
 
 while (($#)); do
   case "$1" in
     install|update|check) COMMAND="$1" ;;
     --profile) PROFILE="${2:?--profile requires a value}"; shift ;;
+    --components) COMPONENTS="${2:?--components requires a value}"; shift ;;
     --dry-run) DRY_RUN="true" ;;
     -h|--help) usage; exit 0 ;;
     *) die "unknown argument: $1" ;;
@@ -28,6 +31,11 @@ done
 
 [[ "$(uname -s)" == "Linux" ]] || die 'wsl.sh must run on Linux'
 require_profile
+if [[ -n "$COMPONENTS" ]]; then
+  [[ "$COMMAND" != "check" ]] || die '--components is only supported by install and update'
+  parse_components "$COMPONENTS"
+  report_unsupported_components WSL packages dotfiles mise vscode
+fi
 
 install_packages() {
   local files=("$ROOT_DIR/packages/wsl-common.txt") packages=()
@@ -54,9 +62,9 @@ main() {
   if [[ "$COMMAND" == "check" ]]; then
     exec bash "$ROOT_DIR/scripts/health-check.sh" --platform wsl --profile "$PROFILE"
   fi
-  install_packages
-  install_mise
-  if ! command -v chezmoi >/dev/null 2>&1; then
+  component_selected packages && install_packages
+  component_selected mise && install_mise
+  if component_selected dotfiles && ! command -v chezmoi >/dev/null 2>&1; then
     if [[ "$DRY_RUN" == "true" ]]; then
       log '[dry-run] install chezmoi into ~/.local/bin'
     else
@@ -64,22 +72,26 @@ main() {
       export PATH="$HOME/.local/bin:$PATH"
     fi
   fi
-  apply_dotfiles
-  install_mise_tools
-  if [[ "$PROFILE" == "personal" ]]; then
+  component_selected dotfiles && apply_dotfiles
+  component_selected mise && install_mise_tools
+  if component_selected mise && [[ "$PROFILE" == "personal" ]]; then
     if [[ "$DRY_RUN" == "true" ]]; then
       log "[dry-run] MISE_CONFIG_FILE=$ROOT_DIR/mise/personal-wsl.toml mise install"
     else
       MISE_CONFIG_FILE="$ROOT_DIR/mise/personal-wsl.toml" mise install
     fi
   fi
-  install_vscode_extensions "$ROOT_DIR/vscode/extensions-common.txt" \
-    "$ROOT_DIR/vscode/extensions-wsl.txt" \
-    "$([[ "$PROFILE" == personal ]] && echo "$ROOT_DIR/vscode/extensions-personal.txt")"
+  if component_selected vscode; then
+    install_vscode_extensions "$ROOT_DIR/vscode/extensions-common.txt" \
+      "$ROOT_DIR/vscode/extensions-wsl.txt" \
+      "$([[ "$PROFILE" == personal ]] && echo "$ROOT_DIR/vscode/extensions-personal.txt")"
+  fi
   [[ "$DRY_RUN" == "true" ]] && { log 'dry-run completed'; return; }
-  bash "$ROOT_DIR/scripts/health-check.sh" --platform wsl --profile "$PROFILE"
-  if [[ "${SHELL:-}" != "$(command -v zsh)" ]]; then
-    log "zsh is installed. To make it your login shell, run: chsh -s \"$(command -v zsh)\""
+  if [[ -z "$COMPONENTS" ]]; then
+    bash "$ROOT_DIR/scripts/health-check.sh" --platform wsl --profile "$PROFILE"
+    if [[ "${SHELL:-}" != "$(command -v zsh)" ]]; then
+      log "zsh is installed. To make it your login shell, run: chsh -s \"$(command -v zsh)\""
+    fi
   fi
 }
 

@@ -6,10 +6,19 @@ param(
     [string]$Target = "all",
     [ValidateSet("personal", "work")]
     [string]$Profile = "personal",
+    [string]$Components,
     [switch]$DryRun
 )
 
 $ErrorActionPreference = "Stop"
-& (Join-Path $PSScriptRoot "bootstrap/windows.ps1") `
-    -Command $Command -Target $Target -Profile $Profile -DryRun:$DryRun
+$arguments = @{
+    Command = $Command
+    Target = $Target
+    Profile = $Profile
+    DryRun = $DryRun
+}
+if ($PSBoundParameters.ContainsKey("Components")) {
+    $arguments.Components = $Components
+}
+& (Join-Path $PSScriptRoot "bootstrap/windows.ps1") @arguments
 

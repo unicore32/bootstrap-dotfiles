@@ -173,6 +173,8 @@ git clone https://github.com/unicore32/bootstrap-dotfiles.git
 cd bootstrap-dotfiles
 bash bootstrap.sh install --profile personal --dry-run
 bash bootstrap.sh install --profile personal
+# Only reconcile selected responsibilities from an existing checkout.
+bash bootstrap.sh install --profile personal --components packages,dotfiles --dry-run
 ```
 
 Use `--profile work` on a company-managed Mac only after confirming that the device policy permits the listed common packages.
@@ -208,6 +210,8 @@ git clone https://github.com/unicore32/bootstrap-dotfiles.git
 Set-Location bootstrap-dotfiles
 .\bootstrap.ps1 install -Target all -Profile personal -DryRun
 .\bootstrap.ps1 install -Target all -Profile personal
+# The same selection is forwarded to the WSL bootstrap for -Target wsl or all.
+.\bootstrap.ps1 install -Target all -Profile personal -Components packages,dotfiles -DryRun
 ```
 
 Available targets are `windows`, `wsl`, and `all`. A newly installed command may not become visible to the current PowerShell process; reopen the terminal and rerun the same command when instructed.
@@ -234,18 +238,52 @@ The Windows entrypoint can also invoke the WSL bootstrap for a repository stored
 🍎 macOS and 🐧 WSL:
 
 ```bash
-bash bootstrap.sh install [--profile personal|work] [--dry-run]
-bash bootstrap.sh update  [--profile personal|work] [--dry-run]
+bash bootstrap.sh install [--profile personal|work] [--components packages,dotfiles,mise,vscode,settings] [--dry-run]
+bash bootstrap.sh update  [--profile personal|work] [--components packages,dotfiles,mise,vscode,settings] [--dry-run]
 bash bootstrap.sh check   [--profile personal|work]
 ```
 
 🪟 Windows:
 
 ```powershell
-.\bootstrap.ps1 install [-Target windows|wsl|all] [-Profile personal|work] [-DryRun]
-.\bootstrap.ps1 update  [-Target windows|wsl|all] [-Profile personal|work] [-DryRun]
+.\bootstrap.ps1 install [-Target windows|wsl|all] [-Profile personal|work] [-Components packages,dotfiles,mise,vscode,settings] [-DryRun]
+.\bootstrap.ps1 update  [-Target windows|wsl|all] [-Profile personal|work] [-Components packages,dotfiles,mise,vscode,settings] [-DryRun]
 .\bootstrap.ps1 check   [-Target windows|wsl|all] [-Profile personal|work]
 ```
+
+`install` and `update` also accept an optional component selector. Omit it to
+preserve the full convergence path. `check` intentionally remains a full health
+check and does not accept a selector.
+
+```bash
+bash bootstrap.sh install --profile personal --components packages,dotfiles --dry-run
+bash bootstrap.sh update --profile work --components mise,vscode
+```
+
+```powershell
+.\bootstrap.ps1 install -Target windows -Profile personal -Components packages,settings -DryRun
+.\bootstrap.ps1 update -Target all -Profile personal -Components dotfiles,mise
+```
+
+| Component | Responsibility | Availability |
+|---|---|---|
+| `packages` | Homebrew Bundle, winget, or apt package manifests | macOS, Windows, WSL |
+| `dotfiles` | chezmoi initialization and apply | macOS, Windows, WSL |
+| `mise` | mise runtime installation | macOS, Windows, WSL |
+| `vscode` | VS Code extension lists | macOS, Windows, WSL |
+| `settings` | Managed operating-system preferences | macOS and Windows; skipped with a message on WSL |
+
+Selectors are comma-separated, case-insensitive names; surrounding whitespace
+is ignored. Empty names, unknown names, and duplicates are errors. Components
+are independent of Windows `-Target`: `windows`, `wsl`, and `all` choose the
+host(s), then the requested responsibilities run on each applicable host. For
+`-Target wsl` or `all`, the Windows dispatcher forwards the normalized selector
+to WSL. A selected component that does not exist on an OS is safely skipped with
+a message. A component run assumes its prerequisite command is already present
+when that command is normally supplied by `packages`; use `packages,...` for a
+first installation, or run the package component first. Individual applications
+remain outside this interface: install or remove them directly with Homebrew,
+winget, or apt.
 
 At present, `install` and `update` execute the same convergence path. `check` validates required commands and runs `chezmoi doctor`; it does not yet produce a complete managed-versus-installed state diff.
 
@@ -299,6 +337,7 @@ Source-of-truth mapping:
 | Personal WSL CLI tools | `mise/personal-wsl.toml` |
 | Managed files | `home/` |
 | VS Code extensions | `vscode/extensions-*.txt` |
+| macOS and Windows settings | `settings/` |
 
 Current convergence behavior:
 
@@ -430,10 +469,12 @@ Run the checks relevant to the edited platform:
 ```bash
 bash -n install-macos.sh bootstrap.sh bootstrap/*.sh scripts/*.sh settings/macos/*.sh
 bash bootstrap.sh install --profile personal --dry-run
+bash bootstrap.sh install --profile personal --components packages,dotfiles --dry-run
 ```
 
 ```powershell
 .\bootstrap.ps1 install -Target windows -Profile personal -DryRun
+.\bootstrap.ps1 install -Target all -Profile personal -Components packages,dotfiles -DryRun
 ```
 
 Also run:

@@ -20,6 +20,53 @@ require_profile() {
   esac
 }
 
+VALID_COMPONENTS=(packages dotfiles mise vscode settings)
+SELECTED_COMPONENTS=()
+
+parse_components() {
+  local value="$1" component normalized existing
+  local -a supplied=() normalized_components=()
+  [[ -n "$value" ]] || die '--components requires at least one component'
+  [[ "$value" != *, ]] || die '--components must not contain an empty component'
+
+  IFS=',' read -r -a supplied <<< "$value"
+  ((${#supplied[@]})) || die '--components requires at least one component'
+  for component in "${supplied[@]}"; do
+    normalized="$(printf '%s' "$component" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+    [[ -n "$normalized" ]] || die '--components must not contain an empty component'
+    case "$normalized" in
+      packages|dotfiles|mise|vscode|settings) ;;
+      *) die "unknown component: $component (valid: ${VALID_COMPONENTS[*]})" ;;
+    esac
+    for existing in "${normalized_components[@]:-}"; do
+      [[ "$existing" == "$normalized" ]] && die "duplicate component: $normalized"
+    done
+    normalized_components+=("$normalized")
+  done
+  SELECTED_COMPONENTS=("${normalized_components[@]}")
+}
+
+component_selected() {
+  local component="$1" selected
+  ((${#SELECTED_COMPONENTS[@]} == 0)) && return 0
+  for selected in "${SELECTED_COMPONENTS[@]}"; do
+    [[ "$selected" == "$component" ]] && return 0
+  done
+  return 1
+}
+
+report_unsupported_components() {
+  local platform="$1"
+  shift
+  local selected supported
+  for selected in "${SELECTED_COMPONENTS[@]}"; do
+    for supported in "$@"; do
+      [[ "$selected" == "$supported" ]] && continue 2
+    done
+    log "component '$selected' is not available on $platform; skipping"
+  done
+}
+
 read_list() {
   sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' "$1"
 }

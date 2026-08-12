@@ -6,11 +6,36 @@ param(
     [string]$Target = "all",
     [ValidateSet("personal", "work")]
     [string]$Profile = "personal",
+    [string]$Components,
     [switch]$DryRun
 )
 
 $ErrorActionPreference = "Stop"
 $RootDir = Split-Path -Parent $PSScriptRoot
+$ValidComponents = @("packages", "dotfiles", "mise", "vscode", "settings")
+$SelectedComponents = @()
+
+if ($PSBoundParameters.ContainsKey("Components")) {
+    if ([string]::IsNullOrWhiteSpace($Components)) {
+        throw "-Components requires at least one component."
+    }
+    foreach ($rawComponent in $Components.Split(",")) {
+        $component = $rawComponent.Trim().ToLowerInvariant()
+        if (-not $component) {
+            throw "-Components must not contain an empty component."
+        }
+        if ($component -notin $ValidComponents) {
+            throw "Unknown component '$rawComponent'. Valid components: $($ValidComponents -join ', ')."
+        }
+        if ($component -in $SelectedComponents) {
+            throw "Duplicate component '$component'."
+        }
+        $SelectedComponents += $component
+    }
+    if ($Command -eq "check") {
+        throw "-Components is only supported by install and update. Check always runs the full health check."
+    }
+}
 
 function Write-Step([string]$Message) {
     Write-Host "[bootstrap] $Message"
@@ -67,6 +92,10 @@ function Install-WingetPackages {
             }
         }
     }
+}
+
+function Test-ComponentSelected([string]$Name) {
+    return $SelectedComponents.Count -eq 0 -or $Name -in $SelectedComponents
 }
 
 function Show-ManualWindowsApplications {
@@ -156,7 +185,8 @@ function Invoke-WSLBootstrap {
         throw "Could not translate repository path for WSL. Complete the first Ubuntu launch first."
     }
     $dryRunArg = if ($DryRun) { " --dry-run" } else { "" }
-    $commandLine = "'$linuxRoot/bootstrap/wsl.sh' $Command --profile $Profile$dryRunArg"
+    $componentsArg = if ($SelectedComponents.Count) { " --components $($SelectedComponents -join ',')" } else { "" }
+    $commandLine = "'$linuxRoot/bootstrap/wsl.sh' $Command --profile $Profile$componentsArg$dryRunArg"
     Write-Step "Running WSL bootstrap"
     & wsl.exe bash -lc $commandLine
     if ($LASTEXITCODE -ne 0) { throw "WSL bootstrap failed (exit $LASTEXITCODE)" }
@@ -195,16 +225,18 @@ if ($Command -eq "check") {
 }
 
 if ($Target -in @("windows", "all")) {
-    Install-WingetPackages
-    Show-ManualWindowsApplications
-    Install-Dotfiles
-    Install-MiseTools
-    Install-VSCodeExtensions
-    Set-PersonalNtp
+    if (Test-ComponentSelected "packages") {
+        Install-WingetPackages
+        Show-ManualWindowsApplications
+    }
+    if (Test-ComponentSelected "dotfiles") { Install-Dotfiles }
+    if (Test-ComponentSelected "mise") { Install-MiseTools }
+    if (Test-ComponentSelected "vscode") { Install-VSCodeExtensions }
+    if (Test-ComponentSelected "settings") { Set-PersonalNtp }
 }
 if ($Target -in @("wsl", "all")) {
     Invoke-WSLBootstrap
 }
-if (-not $DryRun -and $Target -in @("windows", "all")) {
+if (-not $DryRun -and $SelectedComponents.Count -eq 0 -and $Target -in @("windows", "all")) {
     Invoke-HealthCheck
 }

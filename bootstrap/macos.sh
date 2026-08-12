@@ -10,15 +10,18 @@ source "$ROOT_DIR/scripts/lib.sh"
 COMMAND="install"
 PROFILE="personal"
 DRY_RUN="false"
+COMPONENTS=""
 
 usage() {
-  echo 'Usage: ./bootstrap.sh [install|update|check] [--profile personal|work] [--dry-run]'
+  echo 'Usage: ./bootstrap.sh [install|update] [--profile personal|work] [--components packages,dotfiles,mise,vscode,settings] [--dry-run]'
+  echo '       ./bootstrap.sh check [--profile personal|work]'
 }
 
 while (($#)); do
   case "$1" in
     install|update|check) COMMAND="$1" ;;
     --profile) PROFILE="${2:?--profile requires a value}"; shift ;;
+    --components) COMPONENTS="${2:?--components requires a value}"; shift ;;
     --dry-run) DRY_RUN="true" ;;
     -h|--help) usage; exit 0 ;;
     *) die "unknown argument: $1" ;;
@@ -28,6 +31,10 @@ done
 
 [[ "$(uname -s)" == "Darwin" ]] || die 'macos.sh must run on macOS'
 require_profile
+if [[ -n "$COMPONENTS" ]]; then
+  [[ "$COMMAND" != "check" ]] || die '--components is only supported by install and update'
+  parse_components "$COMPONENTS"
+fi
 
 install_homebrew() {
   if ! command -v brew >/dev/null 2>&1; then
@@ -63,22 +70,25 @@ main() {
     [[ "$PROFILE" == "personal" ]] && bash "$ROOT_DIR/settings/macos/ntp.sh" --check
     return
   fi
-  install_homebrew
-  install_packages
-  apply_dotfiles
-  install_mise_tools
-  install_vscode_extensions "$ROOT_DIR/vscode/extensions-common.txt" \
-    "$([[ "$PROFILE" == personal ]] && echo "$ROOT_DIR/vscode/extensions-personal.txt")"
-  if [[ "$DRY_RUN" == "true" ]]; then
-    bash "$ROOT_DIR/settings/macos/dock.sh" --dry-run
-    bash "$ROOT_DIR/settings/macos/finder.sh" --dry-run
-    bash "$ROOT_DIR/settings/macos/natural-scroll.sh" --dry-run
-  else
-    bash "$ROOT_DIR/settings/macos/dock.sh"
-    bash "$ROOT_DIR/settings/macos/finder.sh"
-    bash "$ROOT_DIR/settings/macos/natural-scroll.sh"
+  component_selected packages && { install_homebrew; install_packages; }
+  component_selected dotfiles && apply_dotfiles
+  component_selected mise && install_mise_tools
+  if component_selected vscode; then
+    install_vscode_extensions "$ROOT_DIR/vscode/extensions-common.txt" \
+      "$([[ "$PROFILE" == personal ]] && echo "$ROOT_DIR/vscode/extensions-personal.txt")"
   fi
-  if [[ "$PROFILE" == "personal" ]]; then
+  if component_selected settings; then
+    if [[ "$DRY_RUN" == "true" ]]; then
+      bash "$ROOT_DIR/settings/macos/dock.sh" --dry-run
+      bash "$ROOT_DIR/settings/macos/finder.sh" --dry-run
+      bash "$ROOT_DIR/settings/macos/natural-scroll.sh" --dry-run
+    else
+      bash "$ROOT_DIR/settings/macos/dock.sh"
+      bash "$ROOT_DIR/settings/macos/finder.sh"
+      bash "$ROOT_DIR/settings/macos/natural-scroll.sh"
+    fi
+  fi
+  if component_selected settings && [[ "$PROFILE" == "personal" ]]; then
     if [[ "$DRY_RUN" == "true" ]]; then
       bash "$ROOT_DIR/settings/macos/touch-id.sh" --dry-run
       bash "$ROOT_DIR/settings/macos/ntp.sh" --dry-run
@@ -88,7 +98,7 @@ main() {
     fi
   fi
   [[ "$DRY_RUN" == "true" ]] && { log 'dry-run completed'; return; }
-  bash "$ROOT_DIR/scripts/health-check.sh" --platform macos --profile "$PROFILE"
+  [[ -z "$COMPONENTS" ]] && bash "$ROOT_DIR/scripts/health-check.sh" --platform macos --profile "$PROFILE"
 }
 
 main
