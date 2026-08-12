@@ -21,7 +21,6 @@
     @{ Id = "9NT1R1C2HH7J"; Source = "msstore" }
     @{ Id = "Apple.iTunes"; Source = "winget" }
     @{ Id = "Logitech.OptionsPlus"; Source = "winget" }
-    @{ Id = "Kensington.KensingtonWorks"; Source = "winget" }
     @{ Id = "DBeaver.DBeaver.Community"; Source = "winget" }
     @{ Id = "Docker.DockerDesktop"; Source = "winget" }
 )

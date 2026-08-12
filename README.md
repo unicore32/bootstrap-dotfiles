@@ -34,6 +34,7 @@ The shell environment is intentionally small, composable, and AI-friendly.
 |---|---|
 | Primary interactive shell | zsh |
 | Automation shell | Bash |
+| Terminal emulator | WezTerm (shared macOS/Windows configuration) |
 | Prompt | Starship |
 | History | Atuin |
 | Directory navigation | zoxide |
@@ -50,6 +51,11 @@ The default interactive experience includes zsh completion, fzf key bindings and
 The operating principles are:
 
 - Humans use zsh for interactive terminal work.
+- WezTerm owns local tabs and panes. Its leader is `Ctrl+G`, leaving tmux and
+  Herdr free to use their conventional `Ctrl+B` prefix in nested or remote
+  sessions. On Windows, WezTerm starts the bootstrapped Ubuntu WSL domain in
+  zsh when available; PowerShell 7 and Command Prompt remain explicit launch
+  targets for Windows-host work.
 - WSL installs zsh but does not change the login shell automatically. After bootstrap, run `chsh -s "$(command -v zsh)"` and start a new terminal when you want zsh as the default.
 - zsh keeps a local fallback history in `~/.zsh_history`; Atuin provides the interactive and cross-terminal history experience. Commands prefixed with a space are excluded from the local history, but secrets should never be passed as command-line arguments.
 - Automation and bootstrap scripts use Bash.
@@ -105,6 +111,7 @@ bootstrap-dotfiles/
 │   ├── Brewfile.personal
 │   ├── winget-common.ps1
 │   ├── winget-personal.ps1
+│   ├── windows-manual-common.txt
 │   ├── wsl-common.txt
 │   └── wsl-personal.txt
 ├── vscode/
@@ -180,6 +187,14 @@ After the desired revision has been pushed to `main`, start a personal installat
 
 The Stage 0 installer verifies that winget is available, installs Git when necessary, clones or fast-forward updates the repository at `%LOCALAPPDATA%\bootstrap-dotfiles`, and starts Stage 1. It may require a new PowerShell session after installing Git, WSL initialization, or elevation for the personal NTP setting; those prompts are intentionally not bypassed.
 
+If PowerShell reports that script execution is disabled, allow it only for the current PowerShell process, then rerun the command above. This setting is cleared when the window closes.
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+Do not change the execution policy at the `LocalMachine` scope. On a company-managed device, a Group Policy may prevent even the process-scoped setting; follow the device policy in that case.
+
 To inspect Stage 0 without changing the machine:
 
 ```powershell
@@ -233,6 +248,35 @@ bash bootstrap.sh check   [--profile personal|work]
 ```
 
 At present, `install` and `update` execute the same convergence path. `check` validates required commands and runs `chezmoi doctor`; it does not yet produce a complete managed-versus-installed state diff.
+
+### Working from a repository checkout
+
+Use a local checkout when developing or reviewing bootstrap changes. Run commands
+from the checkout so the dry run and installation use the revision you are
+editing, rather than the revision currently published on `main`.
+
+On macOS or inside WSL:
+
+```bash
+git clone https://github.com/unicore32/bootstrap-dotfiles.git
+cd bootstrap-dotfiles
+bash bootstrap.sh install --profile personal --dry-run
+bash bootstrap.sh install --profile personal
+```
+
+On Windows, clone and run the Windows target from PowerShell. The `all` target
+will invoke the WSL bootstrap using the same checkout.
+
+```powershell
+git clone https://github.com/unicore32/bootstrap-dotfiles.git
+Set-Location bootstrap-dotfiles
+.\bootstrap.ps1 install -Target all -Profile personal -DryRun
+.\bootstrap.ps1 install -Target all -Profile personal
+```
+
+When working from a checkout, do not also run the remote Stage 0 installer for
+the same change. Before committing, run the applicable syntax checks, dry run,
+and `git diff --check` as described in [Validation](#validation).
 
 ## 🔄 State synchronization and idempotency
 
@@ -319,6 +363,7 @@ The scripts change preferences only when necessary. Dock and Finder restart only
 One repository must own each destination file.
 
 - This repository owns `~/.zshrc` and `~/.gitconfig`.
+- This repository owns `~/.config/wezterm/wezterm.lua`.
 - `~/.zshrc` sources `~/.config/shell/local.zsh` when present.
 - `~/.gitconfig` includes `~/.config/git/local.gitconfig`.
 - Under `personal`, chezmoi may own those local overlay files.
@@ -348,6 +393,27 @@ Do not introduce a generated universal package manifest unless the repository ex
 5. Apply and rerun to check convergence.
 
 Do not put secrets in templates. A profile exclusion is not a security boundary because excluded data remains in Git history.
+
+### WezTerm keybindings
+
+WezTerm uses `Ctrl+G` as a 1.5-second leader, rather than the tmux/Herdr
+`Ctrl+B` prefix. This lets the outer terminal and a nested or remote
+multiplexer remain independently controllable.
+
+| Key sequence | Action |
+|---|---|
+| `Ctrl+G`, `|` | Split to the right |
+| `Ctrl+G`, `-` | Split below |
+| `Ctrl+G`, `h` / `j` / `k` / `l` | Focus left / down / up / right pane |
+| `Ctrl+G`, `H` / `J` / `K` / `L` | Resize the focused pane |
+| `Ctrl+G`, `z` | Toggle pane zoom |
+| `Ctrl+G`, `x` | Close the focused pane (with confirmation) |
+| `Ctrl+G`, `c` | New tab in the current domain |
+| `Ctrl+G`, `o` | Open the fuzzy launcher |
+| `Ctrl+G`, `p` | Windows: new PowerShell 7 tab |
+| `Ctrl+G`, `m` | Windows: new Command Prompt tab |
+| `Ctrl+G`, `r` | Reload WezTerm configuration |
+| `Ctrl+G`, `Ctrl+G` | Send `Ctrl+G` to the terminal program |
 
 ### Adding VS Code extensions or runtimes
 

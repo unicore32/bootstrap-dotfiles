@@ -69,6 +69,16 @@ function Install-WingetPackages {
     }
 }
 
+function Show-ManualWindowsApplications {
+    $manualList = Join-Path $RootDir "packages/windows-manual-common.txt"
+    if (-not (Test-Path -LiteralPath $manualList)) { return }
+
+    Write-Step "Manual common applications:"
+    Get-Content -LiteralPath $manualList |
+        Where-Object { $_ -and -not $_.TrimStart().StartsWith("#") } |
+        ForEach-Object { Write-Step "  $($_.Trim())" }
+}
+
 function Install-VSCodeExtensions {
     if (-not (Get-Command code -ErrorAction SilentlyContinue)) {
         Write-Step "VS Code CLI not found; skipping extensions"
@@ -186,6 +196,7 @@ if ($Command -eq "check") {
 
 if ($Target -in @("windows", "all")) {
     Install-WingetPackages
+    Show-ManualWindowsApplications
     Install-Dotfiles
     Install-MiseTools
     Install-VSCodeExtensions

@@ -32,7 +32,7 @@ The requested `common` classification means the application is desired across pe
 | ChatGPT | Cask `chatgpt` | Microsoft Store `9NT1R1C2HH7J` | Added to common manifests | Windows official application is Store-distributed; reject unofficial winget community clients |
 | iTunes | Not applicable | winget `Apple.iTunes` | Added to Windows common manifest | Windows only; winget uses Apple's standalone EXE installer |
 | Logi Options+ | Cask `logi-options+` | winget `Logitech.OptionsPlus` | Added to common manifests | Device-specific software; macOS installation may require a restart and permissions |
-| KensingtonWorks | Vendor installer/manual | winget `Kensington.KensingtonWorks` | Windows added; macOS manual list | No supported Homebrew Cask was confirmed for macOS |
+| KensingtonWorks | Vendor installer/manual | Vendor installer/manual | Manual on both platforms | Device-management software; install from the official vendor page |
 | Visual Studio Code | Cask `visual-studio-code` | winget `Microsoft.VisualStudioCode` | Added to common manifests | Installed on both platforms |
 | DBeaver Community | Cask `dbeaver-community` | winget `DBeaver.DBeaver.Community` | Added to common manifests | Community Edition only |
 | Docker Desktop | Cask `docker-desktop` | winget `Docker.DockerDesktop` | Added to common manifests | Requires compatible OS, virtualization, and license/policy review |
@@ -91,9 +91,9 @@ LINE requires Store-aware or vendor-installer logic on both desktop platforms:
 
 Do not add a similarly named third-party package as a replacement.
 
-### KensingtonWorks on macOS
+### KensingtonWorks
 
-Kensington provides an official macOS installer, but no supported Homebrew Cask was confirmed during the catalog review. Keep it manual until a stable, verifiable automation route is implemented. Driver and privacy permissions may still require user interaction.
+Keep KensingtonWorks manual on macOS and Windows until a stable, verifiable automation route is implemented. The winget package may fail on current Windows installations. Driver and privacy permissions may still require user interaction.
 
 ### Docker Desktop
 
@@ -121,7 +121,7 @@ Review candidates include Discord, ChatGPT, Zoom, Docker Desktop, Logi Options+,
 
 ## Remaining limitations
 
-1. macOS KensingtonWorks remains a manual common application.
+1. KensingtonWorks remains a manual common application on macOS and Windows.
 2. LINE installation through `mas` requires an App Store account that is already signed in.
 3. Common applications are installed for `work`; company device policy can still prohibit them.
 4. Device-feature selection is not implemented, so Logi Options+ and KensingtonWorks are not hardware-gated.
