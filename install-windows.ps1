@@ -2,6 +2,7 @@
 param(
     [ValidateSet("personal", "work")]
     [string]$Profile = "personal",
+    [string]$Branch,
     [ValidateSet("windows", "wsl", "all")]
     [string]$Target = "all",
     [string]$InstallDir = (Join-Path $env:LOCALAPPDATA "bootstrap-dotfiles"),
@@ -56,35 +57,110 @@ function Install-Git {
     }
 }
 
-function Update-Repository([string]$Git) {
-    $gitDirectory = Join-Path $InstallDir ".git"
-    if (Test-Path -LiteralPath $gitDirectory -PathType Container) {
+function Validate-Branch([string]$Git) {
+    if (-not $Branch) { return }
+    if ($Branch.StartsWith("-")) {
+        throw "Invalid branch: $Branch"
+    }
+    & $Git check-ref-format --branch $Branch *> $null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Invalid branch: $Branch"
+    }
+}
+
+function Ensure-CleanRepository([string]$Git) {
+    $status = & $Git -C $InstallDir status --porcelain --untracked-files=all
+    if ($LASTEXITCODE -ne 0) { throw "Could not inspect repository status: $InstallDir" }
+    if ($status) {
+        throw "Repository has local changes; refusing to switch branch: $InstallDir"
+    }
+}
+
+function Fetch-Branch([string]$Git) {
+    $remoteRef = "refs/remotes/origin/$Branch"
+    & $Git -C $InstallDir fetch origin "refs/heads/$Branch:$remoteRef"
+    if ($LASTEXITCODE -ne 0) { throw "Could not fetch branch from origin: $Branch" }
+}
+
+function Switch-ToBranch([string]$Git) {
+    $remoteRef = "refs/remotes/origin/$Branch"
+    & $Git -C $InstallDir show-ref --verify --quiet "refs/heads/$Branch"
+    $localBranchExists = $LASTEXITCODE -eq 0
+    if ($localBranchExists) {
+        $localCommit = (& $Git -C $InstallDir rev-parse "$Branch`^{commit}").Trim()
+        $remoteCommit = (& $Git -C $InstallDir rev-parse "$remoteRef`^{commit}").Trim()
+        & $Git -C $InstallDir merge-base --is-ancestor $localCommit $remoteCommit
+        if ($LASTEXITCODE -ne 0) {
+            throw "Local branch has diverged from origin/$Branch"
+        }
+        & $Git -C $InstallDir switch $Branch
+        if ($LASTEXITCODE -ne 0) { throw "Could not switch to branch: $Branch" }
+    }
+    else {
+        & $Git -C $InstallDir switch --track -c $Branch $remoteRef
+        if ($LASTEXITCODE -ne 0) { throw "Could not create branch: $Branch" }
+    }
+}
+
+function Fast-Forward-Branch([string]$Git) {
+    & $Git -C $InstallDir merge --ff-only "refs/remotes/origin/$Branch"
+    if ($LASTEXITCODE -ne 0) { throw "Could not fast-forward branch: $Branch" }
+}
+
+function Update-ExistingRepository([string]$Git) {
+    if (-not $Branch) {
         Invoke-Stage0 -Description "git -C $InstallDir pull --ff-only" -Action {
             & $Git -C $InstallDir pull --ff-only
             if ($LASTEXITCODE -ne 0) { throw "git pull failed (exit $LASTEXITCODE)" }
         }
         return
     }
+    Ensure-CleanRepository -Git $Git
+    Fetch-Branch -Git $Git
+    Switch-ToBranch -Git $Git
+    Fast-Forward-Branch -Git $Git
+}
+
+function Clone-Repository([string]$Git) {
     if (Test-Path -LiteralPath $InstallDir) {
         throw "install path exists but is not a Git repository: $InstallDir"
     }
     Invoke-Stage0 -Description "create $(Split-Path -Parent $InstallDir)" -Action {
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $InstallDir) | Out-Null
     }
-    Invoke-Stage0 -Description "git clone $RepositoryUrl $InstallDir" -Action {
-        & $Git clone $RepositoryUrl $InstallDir
+    $cloneArguments = @("clone")
+    if ($Branch) { $cloneArguments += @("--branch", $Branch) }
+    $cloneArguments += @($RepositoryUrl, $InstallDir)
+    Invoke-Stage0 -Description "git $($cloneArguments -join ' ')" -Action {
+        & $Git @cloneArguments
         if ($LASTEXITCODE -ne 0) { throw "git clone failed (exit $LASTEXITCODE)" }
+    }
+}
+
+function Update-Repository([string]$Git) {
+    $gitDirectory = Join-Path $InstallDir ".git"
+    if (Test-Path -LiteralPath $gitDirectory -PathType Container) {
+        Update-ExistingRepository -Git $Git
+    }
+    else {
+        Clone-Repository -Git $Git
     }
 }
 
 if ($DryRun) {
     Write-Stage0 "[dry-run] ensure winget and Git are available"
-    Write-Stage0 "[dry-run] clone or fast-forward $RepositoryUrl at $InstallDir"
+    if ($Branch) {
+        Write-Stage0 "[dry-run] clone or fast-forward $RepositoryUrl at $InstallDir (branch=$Branch)"
+    }
+    else {
+        Write-Stage0 "[dry-run] clone or fast-forward $RepositoryUrl at $InstallDir"
+    }
     Write-Stage0 "[dry-run] & $InstallDir/bootstrap.ps1 install -Target $Target -Profile $Profile -DryRun"
 }
 else {
     Install-Git
     $git = Get-GitCommand
+    Validate-Branch -Git $git
     Update-Repository -Git $git
     & (Join-Path $InstallDir "bootstrap.ps1") install -Target $Target -Profile $Profile
 }

@@ -13,7 +13,7 @@ DRY_RUN="false"
 COMPONENTS=""
 
 usage() {
-  echo 'Usage: ./bootstrap.sh [install|update] [--profile personal|work] [--components packages,dotfiles,mise,vscode,settings] [--dry-run]'
+  echo 'Usage: ./bootstrap.sh [install|update] [--profile personal|work] [--components packages,chocolatey,dotfiles,mise,vscode,settings] [--dry-run]'
   echo '       ./bootstrap.sh check [--profile personal|work]'
 }
 

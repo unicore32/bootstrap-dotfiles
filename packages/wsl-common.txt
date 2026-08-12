@@ -8,6 +8,7 @@ ripgrep
 shellcheck
 starship
 unzip
+vim
 zsh
 zsh-autosuggestions
 zsh-syntax-highlighting

@@ -1,9 +1,16 @@
 {
+  "workbench.colorTheme": "Tokyo Night Storm",
+  "editor.fontFamily": "'HackGen35 Console NF', Menlo, Monaco, 'Courier New', monospace",
   "editor.formatOnSave": true,
   "editor.insertSpaces": true,
   "editor.tabSize": 2,
+  "editor.stickyScroll.enabled": true,
+  "editor.minimap.enabled": false,
+  "editor.guides.bracketPairs": "active",
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
+  "terminal.integrated.fontFamily": "'HackGen35 Console NF', Menlo, Monaco, 'Courier New', monospace",
+  "terminal.integrated.scrollback": 100000,
+  "terminal.integrated.splitCwd": "inherited",
   "terminal.integrated.defaultProfile.osx": "zsh"
 }
-

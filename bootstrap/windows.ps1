@@ -12,7 +12,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $RootDir = Split-Path -Parent $PSScriptRoot
-$ValidComponents = @("packages", "dotfiles", "mise", "vscode", "settings")
+$ValidComponents = @("packages", "chocolatey", "dotfiles", "mise", "vscode", "settings")
 $SelectedComponents = @()
 
 if ($PSBoundParameters.ContainsKey("Components")) {
@@ -57,6 +57,49 @@ function Test-Command([string]$Name) {
     }
     Write-Host "[missing] $Name"
     return $false
+}
+
+function Install-Chocolatey {
+    $chocoCommand = Get-Command choco -ErrorAction SilentlyContinue
+    if (-not $chocoCommand) {
+        if ($DryRun) {
+            Write-Host "[dry-run] install Chocolatey"
+        }
+        else {
+            $principal = New-Object Security.Principal.WindowsPrincipal(
+                [Security.Principal.WindowsIdentity]::GetCurrent())
+            if (-not $principal.IsInRole(
+                    [Security.Principal.WindowsBuiltInRole]::Administrator)) {
+                throw "Chocolatey installation requires an elevated PowerShell session."
+            }
+            Set-ExecutionPolicy Bypass -Scope Process -Force
+            [System.Net.ServicePointManager]::SecurityProtocol =
+                [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+            Invoke-Expression ((New-Object System.Net.WebClient).DownloadString(
+                    "https://community.chocolatey.org/install.ps1"))
+            $chocoPath = Join-Path $env:ChocolateyInstall "bin/choco.exe"
+            if (Test-Path -LiteralPath $chocoPath) {
+                $chocoCommand = Get-Command $chocoPath
+            }
+            else {
+                $chocoCommand = Get-Command choco -ErrorAction SilentlyContinue
+            }
+            if (-not $chocoCommand) {
+                throw "Chocolatey was installed, but choco is not available in this session."
+            }
+        }
+    }
+
+    $description = "choco install font-hackgen-nerd"
+    if ($DryRun) {
+        Write-Host "[dry-run] $description --yes --no-progress"
+    }
+    else {
+        & $chocoCommand.Source install font-hackgen-nerd --yes --no-progress
+        if ($LASTEXITCODE -ne 0) {
+            throw "Chocolatey failed for font-hackgen-nerd (exit $LASTEXITCODE)"
+        }
+    }
 }
 
 function Install-WingetPackages {
@@ -225,6 +268,7 @@ if ($Command -eq "check") {
 }
 
 if ($Target -in @("windows", "all")) {
+    if (Test-ComponentSelected "chocolatey") { Install-Chocolatey }
     if (Test-ComponentSelected "packages") {
         Install-WingetPackages
         Show-ManualWindowsApplications

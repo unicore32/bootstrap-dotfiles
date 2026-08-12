@@ -20,38 +20,50 @@ This document records the intended desktop application inventory and the support
 
 The requested `common` classification means the application is desired across personal macOS and Windows machines. It does not automatically mean that the application is approved for a company-managed Mac; see [Work-profile policy](#work-profile-policy).
 
-| Application | 🍎 macOS | 🪟 Windows | Manifest status | Notes |
-|---|---|---|---|---|
-| Google Chrome | Cask `google-chrome` | winget `Google.Chrome` | Added to common manifests | Available on both platforms |
-| Google Japanese Input | Cask `google-japanese-ime` | winget `Google.JapaneseIME` | Added to common manifests | Input-source selection or a logout/restart may still be required |
-| Firefox | Cask `firefox` | winget `Mozilla.Firefox` | Added to common manifests | Available on both platforms |
-| Vivaldi | Cask `vivaldi` | winget `Vivaldi.Vivaldi` | Added to common manifests | Available on both platforms |
-| Bitwarden | Cask `bitwarden` | winget `Bitwarden.Bitwarden` | Added to common manifests | Windows package uses the vendor's standard installer, not Microsoft Store |
-| Zoom | Cask `zoom` | winget `Zoom.Zoom` | Added to common manifests | Package is named Zoom Workplace on Windows |
-| Discord | Cask `discord` | winget `Discord.Discord` | Added to common manifests | Applied to personal and work profiles |
-| ChatGPT | Cask `chatgpt` | Microsoft Store `9NT1R1C2HH7J` | Added to common manifests | Windows official application is Store-distributed; reject unofficial winget community clients |
-| iTunes | Not applicable | winget `Apple.iTunes` | Added to Windows common manifest | Windows only; winget uses Apple's standalone EXE installer |
-| Logi Options+ | Cask `logi-options+` | winget `Logitech.OptionsPlus` | Added to common manifests | Device-specific software; macOS installation may require a restart and permissions |
-| KensingtonWorks | Vendor installer/manual | Vendor installer/manual | Manual on both platforms | Device-management software; install from the official vendor page |
-| Visual Studio Code | Cask `visual-studio-code` | winget `Microsoft.VisualStudioCode` | Added to common manifests | Installed on both platforms |
-| DBeaver Community | Cask `dbeaver-community` | winget `DBeaver.DBeaver.Community` | Added to common manifests | Community Edition only |
-| Docker Desktop | Cask `docker-desktop` | winget `Docker.DockerDesktop` | Added to common manifests | Requires compatible OS, virtualization, and license/policy review |
+| Application           | 🍎 macOS                   | 🪟 Windows                          | Manifest status                  | Notes                                                                                         |
+| --------------------- | -------------------------- | ----------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
+| Google Chrome         | Cask `google-chrome`       | winget `Google.Chrome`              | Added to common manifests        | Available on both platforms                                                                   |
+| Google Japanese Input | Cask `google-japanese-ime` | winget `Google.JapaneseIME`         | Added to common manifests        | Input-source selection or a logout/restart may still be required                              |
+| Firefox               | Cask `firefox`             | winget `Mozilla.Firefox`            | Added to common manifests        | Available on both platforms                                                                   |
+| Vivaldi               | Cask `vivaldi`             | winget `Vivaldi.Vivaldi`            | Added to common manifests        | Available on both platforms                                                                   |
+| Bitwarden             | Cask `bitwarden`           | winget `Bitwarden.Bitwarden`        | Added to common manifests        | Windows package uses the vendor's standard installer, not Microsoft Store                     |
+| Zoom                  | Cask `zoom`                | winget `Zoom.Zoom`                  | Added to common manifests        | Package is named Zoom Workplace on Windows                                                    |
+| Discord               | Cask `discord`             | winget `Discord.Discord`            | Added to common manifests        | Applied to personal and work profiles                                                         |
+| ChatGPT               | Cask `chatgpt`             | Microsoft Store `9NT1R1C2HH7J`      | Added to common manifests        | Windows official application is Store-distributed; reject unofficial winget community clients |
+| iTunes                | Not applicable             | winget `Apple.iTunes`               | Added to Windows common manifest | Windows only; winget uses Apple's standalone EXE installer                                    |
+| Logi Options+         | Cask `logi-options+`       | winget `Logitech.OptionsPlus`       | Added to common manifests        | Device-specific software; macOS installation may require a restart and permissions            |
+| KensingtonWorks       | Vendor installer/manual    | Vendor installer/manual             | Manual on both platforms         | Device-management software; install from the official vendor page                             |
+| Visual Studio Code    | Cask `visual-studio-code`  | winget `Microsoft.VisualStudioCode` | Added to common manifests        | Installed on both platforms                                                                   |
+| DBeaver Community     | Cask `dbeaver-community`   | winget `DBeaver.DBeaver.Community`  | Added to common manifests        | Community Edition only                                                                        |
+| Docker Desktop        | Cask `docker-desktop`      | winget `Docker.DockerDesktop`       | Added to common manifests        | Requires compatible OS, virtualization, and license/policy review                             |
 
 ## Personal applications
 
 Personal applications are installed only with the `personal` profile.
 
-| Application | 🍎 macOS | 🪟 Windows | Manifest status | Notes |
-|---|---|---|---|---|
-| VLC | Cask `vlc` | winget `VideoLAN.VLC` | Added to personal manifests | Available on both platforms |
-| LINE | Mac App Store `539883307` | Microsoft Store `XPFCC4CD725961` | Added to personal manifests | Homebrew Bundle uses `mas` on macOS |
-| Krita | Cask `krita` | winget `KDE.Krita` | Added to personal manifests | Available on both platforms |
+| Application | 🍎 macOS                  | 🪟 Windows                       | Manifest status             | Notes                               |
+| ----------- | ------------------------- | -------------------------------- | --------------------------- | ----------------------------------- |
+| VLC         | Cask `vlc`                | winget `VideoLAN.VLC`            | Added to personal manifests | Available on both platforms         |
+| LINE        | Mac App Store `539883307` | Microsoft Store `XPFCC4CD725961` | Added to personal manifests | Homebrew Bundle uses `mas` on macOS |
+| Krita       | Cask `krita`              | winget `KDE.Krita`               | Added to personal manifests | Available on both platforms         |
 
 ## Personal CLI tools
 
-| Tool | 🍎 macOS | 🐧 WSL | Manifest status | Notes |
-|---|---|---|---|---|
+| Tool  | 🍎 macOS                 | 🐧 WSL            | Manifest status             | Notes                                                              |
+| ----- | ------------------------ | ----------------- | --------------------------- | ------------------------------------------------------------------ |
 | Herdr | Homebrew formula `herdr` | mise tool `herdr` | Added to personal manifests | Agent-aware terminal multiplexer; native Windows remains unmanaged |
+
+## Common terminal tools
+
+| Tool | macOS | WSL | Manifest status | Notes |
+| ---- | ----- | --- | -------------- | ----- |
+| Vim | Homebrew formula `vim` | apt package `vim` | Added to common manifests | Lightweight terminal editor; configuration is managed by chezmoi |
+
+## Common fonts
+
+| Font              | macOS                    | Windows                        | Manifest status                 | Notes                               |
+| ----------------- | ------------------------ | ------------------------------ | ------------------------------- | ----------------------------------- |
+| HackGen Nerd Font | Cask `font-hackgen-nerd` | Chocolatey `font-hackgen-nerd` | Added to common bootstrap paths | WezTerm uses `HackGen35 Console NF` |
 
 ## Special installation policies
 
@@ -110,12 +122,12 @@ The repository currently defines `work` as common state without personal state. 
 
 The requested classification is now implemented as written: common applications apply to both `personal` and `work`. The following categories remain useful if company policy later requires a narrower split:
 
-| Decision | Meaning |
-|---|---|
-| `common-core` | Safe and intended for personal and work profiles |
-| `personal-common` | Shared by personal macOS and Windows, excluded from work |
-| `device` | Installed only when the matching hardware or capability is requested |
-| `work-owned` | Not managed here; company repository decides |
+| Decision          | Meaning                                                              |
+| ----------------- | -------------------------------------------------------------------- |
+| `common-core`     | Safe and intended for personal and work profiles                     |
+| `personal-common` | Shared by personal macOS and Windows, excluded from work             |
+| `device`          | Installed only when the matching hardware or capability is requested |
+| `work-owned`      | Not managed here; company repository decides                         |
 
 Review candidates include Discord, ChatGPT, Zoom, Docker Desktop, Logi Options+, KensingtonWorks, and the three web browsers. Their current common classification is intentional, but it does not override company device policy.
 

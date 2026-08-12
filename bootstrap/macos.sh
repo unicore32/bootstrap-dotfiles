@@ -13,7 +13,7 @@ DRY_RUN="false"
 COMPONENTS=""
 
 usage() {
-  echo 'Usage: ./bootstrap.sh [install|update] [--profile personal|work] [--components packages,dotfiles,mise,vscode,settings] [--dry-run]'
+  echo 'Usage: ./bootstrap.sh [install|update] [--profile personal|work] [--components packages,chocolatey,dotfiles,mise,vscode,settings] [--dry-run]'
   echo '       ./bootstrap.sh check [--profile personal|work]'
 }
 
@@ -34,6 +34,7 @@ require_profile
 if [[ -n "$COMPONENTS" ]]; then
   [[ "$COMMAND" != "check" ]] || die '--components is only supported by install and update'
   parse_components "$COMPONENTS"
+  report_unsupported_components macOS packages dotfiles mise vscode settings
 fi
 
 install_homebrew() {

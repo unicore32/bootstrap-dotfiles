@@ -20,7 +20,7 @@ require_profile() {
   esac
 }
 
-VALID_COMPONENTS=(packages dotfiles mise vscode settings)
+VALID_COMPONENTS=(packages chocolatey dotfiles mise vscode settings)
 SELECTED_COMPONENTS=()
 
 parse_components() {
@@ -35,7 +35,7 @@ parse_components() {
     normalized="$(printf '%s' "$component" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
     [[ -n "$normalized" ]] || die '--components must not contain an empty component'
     case "$normalized" in
-      packages|dotfiles|mise|vscode|settings) ;;
+      packages|chocolatey|dotfiles|mise|vscode|settings) ;;
       *) die "unknown component: $component (valid: ${VALID_COMPONENTS[*]})" ;;
     esac
     for existing in "${normalized_components[@]:-}"; do

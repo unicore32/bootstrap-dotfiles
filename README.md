@@ -11,17 +11,18 @@ This repository is the source of truth for public, reproducible machine state: p
 
 Supported environments:
 
-| Environment | Profile | Package manager | Applied state |
-|---|---|---|---|
-| 🍎 Personal macOS | `personal` | Homebrew | Common and personal |
-| 🪟 Personal Windows | `personal` | winget | Windows applications and WSL orchestration |
-| 🐧 Personal WSL | `personal` | apt | Linux CLI tools and runtimes |
-| 🍎 Company macOS | `work` | Homebrew | Common state only |
+| Environment         | Profile    | Package manager | Applied state                              |
+| ------------------- | ---------- | --------------- | ------------------------------------------ |
+| 🍎 Personal macOS   | `personal` | Homebrew        | Common and personal                        |
+| 🪟 Personal Windows | `personal` | winget          | Windows applications and WSL orchestration |
+| 🐧 Personal WSL     | `personal` | apt             | Linux CLI tools and runtimes               |
+| 🍎 Company macOS    | `work`     | Homebrew        | Common state only                          |
 
 This repository manages:
 
 - CLI tools and GUI applications
 - zsh and Git configuration
+- A small shared Vim configuration for terminal editing
 - VS Code settings and extensions
 - Node.js, Python, and Go through mise
 - Windows-to-WSL bootstrap orchestration
@@ -30,23 +31,32 @@ This repository manages:
 
 The shell environment is intentionally small, composable, and AI-friendly.
 
-| Role | Choice |
-|---|---|
-| Primary interactive shell | zsh |
-| Automation shell | Bash |
-| Terminal emulator | WezTerm (shared macOS/Windows configuration) |
-| Prompt | Starship |
-| History | Atuin |
-| Directory navigation | zoxide |
-| Fuzzy selection | fzf |
-| File previews | bat |
-| Directory listings | eza (`ll` includes Git status) |
-| Runtime and project environments | mise / `mise.toml` |
-| AI-facing repository guidance | `AGENTS.md` |
+| Role                             | Choice                                       |
+| -------------------------------- | -------------------------------------------- |
+| Primary interactive shell        | zsh                                          |
+| Automation shell                 | Bash                                         |
+| Terminal emulator                | WezTerm (shared macOS/Windows configuration) |
+| Prompt                           | Starship                                     |
+| History                          | Atuin                                        |
+| Directory navigation             | zoxide                                       |
+| Fuzzy selection                  | fzf                                          |
+| File previews                    | bat                                          |
+| Directory listings               | eza (`ll` includes Git status)               |
+| Runtime and project environments | mise / `mise.toml`                           |
+| AI-facing repository guidance    | `AGENTS.md`                                  |
 
 Oh My Zsh and large theme or plugin collections are deliberately not used. Shell behavior should remain understandable from the checked-in files without framework-specific knowledge.
 
 The default interactive experience includes zsh completion, fzf key bindings and completion, zsh-autosuggestions, and zsh-syntax-highlighting. tmux and Nushell remain optional tools.
+
+### Vim
+
+Vim is installed on macOS and WSL as a terminal editor for quick changes and
+remote sessions. `home/dot_vimrc` deliberately uses built-in features only:
+syntax and filetype detection, sensible search behavior, relative line numbers,
+system clipboard integration when available, persistent undo, and a small set
+of leader mappings. VS Code remains the primary full IDE, so this setup does
+not add a plugin manager or language-specific plugins.
 
 The operating principles are:
 
@@ -101,6 +111,7 @@ bootstrap-dotfiles/
 │   ├── .chezmoi.toml.tmpl      # Initial interactive profile selection
 │   ├── .chezmoiignore          # OS/profile exclusions
 │   ├── dot_gitconfig
+│   ├── dot_vimrc                 # Lightweight macOS/WSL terminal editor setup
 │   ├── dot_zshrc.tmpl
 │   ├── dot_config/             # Cross-platform and Linux configuration
 │   ├── Library/                # macOS-specific configuration
@@ -155,7 +166,7 @@ Start with a dry run. Review package manifests before executing a real installat
 After the desired revision has been pushed to `main`, start a personal installation with one command:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/unicore32/bootstrap-dotfiles/main/install-macos.sh)" -- --profile personal
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/unicore32/bootstrap-dotfiles/main/install-macos.sh)" -- --profile personal --branch feature/foo
 ```
 
 The Stage 0 installer prepares Homebrew and Git, clones or fast-forward updates the repository at `~/.local/share/bootstrap-dotfiles`, and starts Stage 1. It can trigger interactive Command Line Tools, `sudo`, App Store, and macOS permission prompts; those prompts are intentionally not bypassed.
@@ -165,6 +176,9 @@ To inspect Stage 0 without changing the machine:
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/unicore32/bootstrap-dotfiles/main/install-macos.sh)" -- --profile personal --dry-run
 ```
+
+The installer itself is fetched from `main`; `--branch` selects the branch
+used for the repository checkout and the subsequent bootstrap.
 
 Manual clone remains supported:
 
@@ -184,7 +198,7 @@ Use `--profile work` on a company-managed Mac only after confirming that the dev
 After the desired revision has been pushed to `main`, start a personal installation from PowerShell with:
 
 ```powershell
-& ([scriptblock]::Create((Invoke-RestMethod -Uri "https://raw.githubusercontent.com/unicore32/bootstrap-dotfiles/main/install-windows.ps1"))) -Profile personal
+& ([scriptblock]::Create((Invoke-RestMethod -Uri "https://raw.githubusercontent.com/unicore32/bootstrap-dotfiles/main/install-windows.ps1"))) -Profile personal -Branch feature/foo
 ```
 
 The Stage 0 installer verifies that winget is available, installs Git when necessary, clones or fast-forward updates the repository at `%LOCALAPPDATA%\bootstrap-dotfiles`, and starts Stage 1. It may require a new PowerShell session after installing Git, WSL initialization, or elevation for the personal NTP setting; those prompts are intentionally not bypassed.
@@ -200,7 +214,7 @@ Do not change the execution policy at the `LocalMachine` scope. On a company-man
 To inspect Stage 0 without changing the machine:
 
 ```powershell
-& ([scriptblock]::Create((Invoke-RestMethod -Uri "https://raw.githubusercontent.com/unicore32/bootstrap-dotfiles/main/install-windows.ps1"))) -Profile personal -DryRun
+& ([scriptblock]::Create((Invoke-RestMethod -Uri "https://raw.githubusercontent.com/unicore32/bootstrap-dotfiles/main/install-windows.ps1"))) -Profile personal -Branch feature/foo -DryRun
 ```
 
 Manual clone remains supported when Git is already installed:
@@ -238,16 +252,16 @@ The Windows entrypoint can also invoke the WSL bootstrap for a repository stored
 🍎 macOS and 🐧 WSL:
 
 ```bash
-bash bootstrap.sh install [--profile personal|work] [--components packages,dotfiles,mise,vscode,settings] [--dry-run]
-bash bootstrap.sh update  [--profile personal|work] [--components packages,dotfiles,mise,vscode,settings] [--dry-run]
+bash bootstrap.sh install [--profile personal|work] [--components packages,chocolatey,dotfiles,mise,vscode,settings] [--dry-run]
+bash bootstrap.sh update  [--profile personal|work] [--components packages,chocolatey,dotfiles,mise,vscode,settings] [--dry-run]
 bash bootstrap.sh check   [--profile personal|work]
 ```
 
 🪟 Windows:
 
 ```powershell
-.\bootstrap.ps1 install [-Target windows|wsl|all] [-Profile personal|work] [-Components packages,dotfiles,mise,vscode,settings] [-DryRun]
-.\bootstrap.ps1 update  [-Target windows|wsl|all] [-Profile personal|work] [-Components packages,dotfiles,mise,vscode,settings] [-DryRun]
+.\bootstrap.ps1 install [-Target windows|wsl|all] [-Profile personal|work] [-Components packages,chocolatey,dotfiles,mise,vscode,settings] [-DryRun]
+.\bootstrap.ps1 update  [-Target windows|wsl|all] [-Profile personal|work] [-Components packages,chocolatey,dotfiles,mise,vscode,settings] [-DryRun]
 .\bootstrap.ps1 check   [-Target windows|wsl|all] [-Profile personal|work]
 ```
 
@@ -265,13 +279,14 @@ bash bootstrap.sh update --profile work --components mise,vscode
 .\bootstrap.ps1 update -Target all -Profile personal -Components dotfiles,mise
 ```
 
-| Component | Responsibility | Availability |
-|---|---|---|
-| `packages` | Homebrew Bundle, winget, or apt package manifests | macOS, Windows, WSL |
-| `dotfiles` | chezmoi initialization and apply | macOS, Windows, WSL |
-| `mise` | mise runtime installation | macOS, Windows, WSL |
-| `vscode` | VS Code extension lists | macOS, Windows, WSL |
-| `settings` | Managed operating-system preferences | macOS and Windows; skipped with a message on WSL |
+| Component    | Responsibility                                    | Availability                                     |
+| ------------ | ------------------------------------------------- | ------------------------------------------------ |
+| `packages`   | Homebrew Bundle, winget, or apt package manifests | macOS, Windows, WSL                              |
+| `chocolatey` | Chocolatey and the HackGen Nerd Font              | Windows; skipped with a message on other hosts   |
+| `dotfiles`   | chezmoi initialization and apply                  | macOS, Windows, WSL                              |
+| `mise`       | mise runtime installation                         | macOS, Windows, WSL                              |
+| `vscode`     | VS Code extension lists                           | macOS, Windows, WSL                              |
+| `settings`   | Managed operating-system preferences              | macOS and Windows; skipped with a message on WSL |
 
 Selectors are comma-separated, case-insensitive names; surrounding whitespace
 is ignored. Empty names, unknown names, and duplicates are errors. Components
@@ -280,12 +295,26 @@ host(s), then the requested responsibilities run on each applicable host. For
 `-Target wsl` or `all`, the Windows dispatcher forwards the normalized selector
 to WSL. A selected component that does not exist on an OS is safely skipped with
 a message. A component run assumes its prerequisite command is already present
-when that command is normally supplied by `packages`; use `packages,...` for a
-first installation, or run the package component first. Individual applications
-remain outside this interface: install or remove them directly with Homebrew,
-winget, or apt.
+when that command is normally supplied by `packages`; the `chocolatey`
+component installs its own Chocolatey prerequisite. Use
+`packages,chocolatey,...` for a first Windows installation. Individual
+applications remain outside this interface: install or remove them directly
+with Homebrew, winget, Chocolatey, or apt.
 
 At present, `install` and `update` execute the same convergence path. `check` validates required commands and runs `chezmoi doctor`; it does not yet produce a complete managed-versus-installed state diff.
+
+### Selecting a Git branch
+
+The remote Stage 0 installers accept an optional branch selector. A new
+installation clones that branch directly. An existing installation must have
+a clean Git worktree; the installer fetches `origin/<branch>`, switches only
+when the local branch can be fast-forwarded, and stops on local changes,
+missing branches, or diverged history. It never stashes, resets, discards, or
+force-checks out local work.
+
+Without `--branch` or `-Branch`, the existing clone/pull behavior is preserved.
+Local checkouts do not accept a branch option; switch them explicitly with
+`git switch <branch>` before running `bootstrap.sh` or `bootstrap.ps1`.
 
 ### Working from a repository checkout
 
@@ -328,21 +357,24 @@ Git is the synchronization mechanism. Installing an application manually on one 
 
 Source-of-truth mapping:
 
-| State | Source of truth |
-|---|---|
-| macOS packages | `packages/Brewfile.*` |
-| Windows packages | `packages/winget-*.ps1` |
-| WSL packages | `packages/wsl-*.txt` |
-| Development runtimes | `mise/config.toml` |
-| Personal WSL CLI tools | `mise/personal-wsl.toml` |
-| Managed files | `home/` |
-| VS Code extensions | `vscode/extensions-*.txt` |
-| macOS and Windows settings | `settings/` |
+| State                       | Source of truth                                  |
+| --------------------------- | ------------------------------------------------ |
+| macOS packages              | `packages/Brewfile.*`                            |
+| Windows packages            | `packages/winget-*.ps1`                          |
+| Windows Chocolatey packages | `bootstrap/windows.ps1` (`chocolatey` component) |
+| WSL packages                | `packages/wsl-*.txt`                             |
+| Development runtimes        | `mise/config.toml`                               |
+| Personal WSL CLI tools      | `mise/personal-wsl.toml`                         |
+| Managed files               | `home/`                                          |
+| Vim configuration           | `home/dot_vimrc`                                 |
+| VS Code extensions          | `vscode/extensions-*.txt`                        |
+| macOS and Windows settings  | `settings/`                                      |
 
 Current convergence behavior:
 
 - Homebrew Bundle, apt, mise, and chezmoi generally converge when rerun.
 - winget treats successful and already-installed results as non-fatal.
+- Chocolatey installs HackGen's Nerd Font through the dedicated Windows component.
 - VS Code extensions are installed with `--force`, so a rerun can perform unnecessary work.
 - apt metadata is refreshed on every applicable run.
 - Removing an entry from a manifest does not uninstall it from existing machines.
@@ -439,20 +471,20 @@ WezTerm uses `Ctrl+G` as a 1.5-second leader, rather than the tmux/Herdr
 `Ctrl+B` prefix. This lets the outer terminal and a nested or remote
 multiplexer remain independently controllable.
 
-| Key sequence | Action |
-|---|---|
-| `Ctrl+G`, `|` | Split to the right |
-| `Ctrl+G`, `-` | Split below |
-| `Ctrl+G`, `h` / `j` / `k` / `l` | Focus left / down / up / right pane |
-| `Ctrl+G`, `H` / `J` / `K` / `L` | Resize the focused pane |
-| `Ctrl+G`, `z` | Toggle pane zoom |
-| `Ctrl+G`, `x` | Close the focused pane (with confirmation) |
-| `Ctrl+G`, `c` | New tab in the current domain |
-| `Ctrl+G`, `o` | Open the fuzzy launcher |
-| `Ctrl+G`, `p` | Windows: new PowerShell 7 tab |
-| `Ctrl+G`, `m` | Windows: new Command Prompt tab |
-| `Ctrl+G`, `r` | Reload WezTerm configuration |
-| `Ctrl+G`, `Ctrl+G` | Send `Ctrl+G` to the terminal program |
+| Key sequence                    | Action                                     |
+| ------------------------------- | ------------------------------------------ | ------------------ |
+| `Ctrl+G`, `                     | `                                          | Split to the right |
+| `Ctrl+G`, `-`                   | Split below                                |
+| `Ctrl+G`, `h` / `j` / `k` / `l` | Focus left / down / up / right pane        |
+| `Ctrl+G`, `H` / `J` / `K` / `L` | Resize the focused pane                    |
+| `Ctrl+G`, `z`                   | Toggle pane zoom                           |
+| `Ctrl+G`, `x`                   | Close the focused pane (with confirmation) |
+| `Ctrl+G`, `c`                   | New tab in the current domain              |
+| `Ctrl+G`, `o`                   | Open the fuzzy launcher                    |
+| `Ctrl+G`, `p`                   | Windows: new PowerShell 7 tab              |
+| `Ctrl+G`, `m`                   | Windows: new Command Prompt tab            |
+| `Ctrl+G`, `r`                   | Reload WezTerm configuration               |
+| `Ctrl+G`, `Ctrl+G`              | Send `Ctrl+G` to the terminal program      |
 
 ### Adding VS Code extensions or runtimes
 

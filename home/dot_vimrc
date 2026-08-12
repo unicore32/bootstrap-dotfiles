@@ -1,0 +1,80 @@
+" A small, portable Vim setup for macOS and WSL.
+" Keep this deliberately plugin-free: VS Code remains the full IDE.
+
+if &compatible
+  set nocompatible
+endif
+
+" Basic editing behavior.
+filetype plugin indent on
+syntax enable
+set encoding=utf-8
+set hidden
+set mouse=a
+set number
+set relativenumber
+set signcolumn=yes
+set cursorline
+set scrolloff=5
+set sidescrolloff=8
+set splitbelow
+set splitright
+set expandtab
+set tabstop=2
+set shiftwidth=2
+set softtabstop=2
+set autoindent
+set smartindent
+
+" Search and command-line completion.
+set ignorecase
+set smartcase
+set incsearch
+set hlsearch
+set wildmenu
+set wildmode=longest:full,full
+set showcmd
+set showmode
+
+" Keep undo history out of project directories.
+silent! call mkdir(expand('~/.vim/undo'), 'p')
+set undofile
+set undodir=~/.vim/undo
+set backup
+set backupdir=~/.vim/backup,.
+set directory=~/.vim/swap,.
+silent! call mkdir(expand('~/.vim/backup'), 'p')
+silent! call mkdir(expand('~/.vim/swap'), 'p')
+
+" Use the system clipboard only when this Vim was built with support for it.
+if has('clipboard')
+  set clipboard=unnamed,unnamedplus
+endif
+
+" A readable built-in theme works in both terminal Vim and older packages.
+if exists('+termguicolors') && !has('gui_running') && &term !=# 'dumb'
+  set termguicolors
+endif
+if filereadable($VIMRUNTIME . '/colors/habamax.vim')
+  colorscheme habamax
+else
+  colorscheme desert
+endif
+
+" Leader mappings are intentionally few and mnemonic.
+let mapleader = ' '
+let maplocalleader = ','
+nnoremap <silent> <Esc> :nohlsearch<CR>
+nnoremap <leader>w :write<CR>
+nnoremap <leader>q :quit<CR>
+nnoremap <leader>h :nohlsearch<CR>
+if exists(':terminal') == 2
+  nnoremap <leader>t :botright split \| terminal<CR>
+endif
+nnoremap <silent> [b :bprevious<CR>
+nnoremap <silent> ]b :bnext<CR>
+nnoremap <silent> [q :cprevious<CR>
+nnoremap <silent> ]q :cnext<CR>
+
+" Keep the cursor position when jumping around.
+autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line('$') | execute "normal! g`\"" | endif
