@@ -14,7 +14,7 @@ This file defines repository-specific instructions for AI coding agents. Read `R
 
 ## Repository invariants
 
-- Preserve the `personal` and `work` boundary.
+- Preserve the `common` and `personal` boundary; company state belongs in the separate work repository.
 - Never add secrets or company-internal state.
 - Keep Windows host and WSL ownership separate.
 - One repository and one mechanism must own each destination file or installed tool.
@@ -22,9 +22,9 @@ This file defines repository-specific instructions for AI coding agents. Read `R
 - Prefer convergent, rerunnable operations and do not automatically remove undeclared software.
 - Update `README.md` when commands, ownership, architecture, or development rules change.
 - Never depend on files under the ignored `private/` directory.
-- Apply the custom NTP server only to `personal` macOS and Windows hosts. Do not configure NTP in WSL or the `work` profile.
-- Keep macOS natural scrolling disabled for both `personal` and `work` profiles. Do not apply this preference to Windows or WSL.
-- Apply the declared Dock and Finder preferences to both macOS profiles. Finder sidebar Recents is intentionally unmanaged until a stable interface is selected.
+- Apply the custom NTP server only to `personal` macOS and Windows hosts. Do not configure NTP in WSL or `common`.
+- Keep macOS natural scrolling disabled for both `common` and `personal` profiles. Do not apply this preference to Windows or WSL.
+- Apply the declared Dock and Finder preferences to both macOS profiles. Company-specific additions belong in the separate work repository.
 
 ## Required validation
 

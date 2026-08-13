@@ -15,8 +15,8 @@ run() {
 
 require_profile() {
   case "$PROFILE" in
-    personal|work) ;;
-    *) die "profile must be personal or work: $PROFILE" ;;
+    common|personal) ;;
+    *) die "profile must be common or personal: $PROFILE" ;;
   esac
 }
 

@@ -4,8 +4,8 @@ param(
     [string]$Command = "install",
     [ValidateSet("windows", "wsl", "all")]
     [string]$Target = "all",
-    [ValidateSet("personal", "work")]
-    [string]$Profile = "personal",
+    [ValidateSet("common", "personal")]
+    [string]$Profile = "common",
     [string]$Components,
     [switch]$DryRun
 )

@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
-    [ValidateSet("personal", "work")]
-    [string]$Profile = "personal",
+    [ValidateSet("common", "personal")]
+    [string]$Profile = "common",
     [string]$Branch,
     [ValidateSet("windows", "wsl", "all")]
     [string]$Target = "all",

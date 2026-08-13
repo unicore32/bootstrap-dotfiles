@@ -1,8 +1,8 @@
 # bootstrap-dotfiles
 
-Cross-platform workstation bootstrap and dotfiles for personal macOS, Windows, WSL, and company-managed macOS devices.
+Cross-platform workstation bootstrap and dotfiles for personal macOS, Windows, and WSL. Company-specific state is managed by a separate, company-controlled work repository.
 
-This repository is the source of truth for public, reproducible machine state: packages, development runtimes, editor extensions, and shared configuration. It uses [chezmoi](https://www.chezmoi.io/) for file deployment and selects either a `personal` or `work` profile.
+This repository is the source of truth for public, reproducible machine state: packages, development runtimes, editor extensions, and shared configuration. It uses [chezmoi](https://www.chezmoi.io/) for file deployment and provides a `common` base plus an optional `personal` profile.
 
 > [!IMPORTANT]
 > This is an initial implementation. Repeated runs are designed to converge safely, but strict idempotency, automatic removal of unmanaged software, and automatic repository pulling are not yet guaranteed. See [State synchronization and idempotency](#state-synchronization-and-idempotency).
@@ -16,7 +16,7 @@ Supported environments:
 | 🍎 Personal macOS   | `personal` | Homebrew        | Common and personal                        |
 | 🪟 Personal Windows | `personal` | winget          | Windows applications and WSL orchestration |
 | 🐧 Personal WSL     | `personal` | apt             | Linux CLI tools and runtimes               |
-| 🍎 Company macOS    | `work`     | Homebrew        | Common state only                          |
+| 🏢 Company macOS    | work repo  | Homebrew        | `common` from this repo, then work state   |
 
 This repository manages:
 
@@ -79,19 +79,30 @@ This repository does not manage:
 - Security-policy bypasses
 - Automatic removal of software that is absent from a manifest
 
-Company-specific state belongs in a separate, company-controlled `company-workstation` repository. That repository may populate the extension points documented below, but it must not manage the same destination files as this repository.
+Company-specific state belongs in the separate, company-controlled
+work repository. The work repository fetches a pinned revision of this
+repository, runs the `common` profile, and then applies company-specific state.
+The two repositories must not manage the same destination files.
 
 ## 👤 Profiles
+
+### `common`
+
+The default profile. It applies the public, cross-platform baseline. Omitting
+`--profile` is equivalent to `--profile common`.
 
 ### `personal`
 
 Applies common state plus public personal applications, extensions, and local overlays. It is intended for personally owned machines.
 
-### `work`
+Company machines do not use a profile in this repository. Run
+the work repository, which pins and runs this repository's `common` profile
+before applying company-specific state.
 
-Applies common state only. It deliberately contains no company-specific or personal-only state. A separate company repository is responsible for approved company packages and configuration.
-
-The selected profile is stored by chezmoi during initial configuration. Changing `--profile` on a later run does not currently guarantee that an existing chezmoi profile is replaced. Inspect the chezmoi configuration before changing an existing machine from one profile to another.
+The selected profile is stored by chezmoi during initial configuration.
+Changing `--profile` on a later run does not currently guarantee that an
+existing chezmoi profile is replaced. Inspect the chezmoi configuration before
+changing an existing machine from `common` to `personal`.
 
 ## 🗂️ Repository structure
 
@@ -191,7 +202,8 @@ bash bootstrap.sh install --profile personal
 bash bootstrap.sh install --profile personal --components packages,dotfiles --dry-run
 ```
 
-Use `--profile work` on a company-managed Mac only after confirming that the device policy permits the listed common packages.
+Company-managed Macs should be bootstrapped through
+the work repository; do not add company state to this repository.
 
 ### 🪟 Windows
 
@@ -252,17 +264,17 @@ The Windows entrypoint can also invoke the WSL bootstrap for a repository stored
 🍎 macOS and 🐧 WSL:
 
 ```bash
-bash bootstrap.sh install [--profile personal|work] [--components packages,chocolatey,dotfiles,mise,vscode,settings] [--dry-run]
-bash bootstrap.sh update  [--profile personal|work] [--components packages,chocolatey,dotfiles,mise,vscode,settings] [--dry-run]
-bash bootstrap.sh check   [--profile personal|work]
+bash bootstrap.sh install [--profile common|personal] [--components packages,chocolatey,dotfiles,mise,vscode,settings] [--dry-run]
+bash bootstrap.sh update  [--profile common|personal] [--components packages,chocolatey,dotfiles,mise,vscode,settings] [--dry-run]
+bash bootstrap.sh check   [--profile common|personal]
 ```
 
 🪟 Windows:
 
 ```powershell
-.\bootstrap.ps1 install [-Target windows|wsl|all] [-Profile personal|work] [-Components packages,chocolatey,dotfiles,mise,vscode,settings] [-DryRun]
-.\bootstrap.ps1 update  [-Target windows|wsl|all] [-Profile personal|work] [-Components packages,chocolatey,dotfiles,mise,vscode,settings] [-DryRun]
-.\bootstrap.ps1 check   [-Target windows|wsl|all] [-Profile personal|work]
+.\bootstrap.ps1 install [-Target windows|wsl|all] [-Profile common|personal] [-Components packages,chocolatey,dotfiles,mise,vscode,settings] [-DryRun]
+.\bootstrap.ps1 update  [-Target windows|wsl|all] [-Profile common|personal] [-Components packages,chocolatey,dotfiles,mise,vscode,settings] [-DryRun]
+.\bootstrap.ps1 check   [-Target windows|wsl|all] [-Profile common|personal]
 ```
 
 `install` and `update` also accept an optional component selector. Omit it to
@@ -271,7 +283,7 @@ check and does not accept a selector.
 
 ```bash
 bash bootstrap.sh install --profile personal --components packages,dotfiles --dry-run
-bash bootstrap.sh update --profile work --components mise,vscode
+bash bootstrap.sh update --profile common --components mise,vscode
 ```
 
 ```powershell
@@ -390,7 +402,7 @@ Personal macOS and Windows hosts use `ntp.jst.mfeed.ad.jp` as their NTP server.
 - 🍎 macOS uses `systemsetup` and prompts for `sudo` only when the personal NTP step runs or is checked.
 - 🪟 Windows uses W32Time and requires an elevated PowerShell session when the current configuration must change.
 - 🐧 WSL is not configured separately; the Windows host owns time synchronization.
-- 🏢 The `work` profile never changes NTP because company policy, MDM, or an Active Directory domain may own it.
+- 🏢 This repository never changes NTP on company machines; the work repository or company policy owns that state.
 
 The scripts compare current state before applying a change. A dry run prints the intended operation without requesting elevation or changing system state.
 
@@ -399,12 +411,14 @@ The scripts compare current state before applying a change. A dry run prints the
 Personal macOS hosts enable Touch ID for local `sudo` authentication through `/etc/pam.d/sudo_local`. The managed rule prefers Touch ID and retains password authentication as a fallback when Touch ID is unavailable, such as over SSH.
 
 - The bootstrap never edits `/etc/pam.d/sudo` directly.
-- The `work` profile does not manage this setting.
+- Company machines are not managed by this repository's profile system.
 - If an unmanaged `sudo_local` already exists without a Touch ID rule, the bootstrap stops rather than overwriting it.
 
 ## 🖱️ macOS preferences
 
-The following current-user preferences apply to both `personal` and `work` profiles and do not require administrator privileges.
+The following current-user preferences apply to both `common` and `personal`
+profiles and do not require administrator privileges. Company machines receive
+these through the `common` profile before the work repository applies its own state.
 
 ### Dock
 
@@ -438,7 +452,7 @@ One repository must own each destination file.
 - `~/.zshrc` sources `~/.config/shell/local.zsh` when present.
 - `~/.gitconfig` includes `~/.config/git/local.gitconfig`.
 - Under `personal`, chezmoi may own those local overlay files.
-- Under `work`, the separate company repository may own those overlay files.
+- Under company machines, the work repository may own those overlay files.
 - The company repository must not overwrite files already owned here.
 
 VS Code has no general include mechanism for JSON settings. Common settings live here; company settings should use a separate VS Code `Work` Profile. Do not hard-code VS Code's internal profile identifier.
@@ -522,7 +536,7 @@ CI performs Bash syntax checks, ShellCheck, and PowerShell parser checks. A dry 
 These rules are normative for both human contributors and AI coding agents:
 
 1. Treat this README and the checked-in manifests as the public source of truth.
-2. Preserve the `personal`/`work` security boundary. Never add company-internal state here.
+2. Preserve the `common`/`personal` boundary and keep company state in the separate work repository.
 3. Never commit secrets, credentials, private hosts, private certificates, or personal authentication data.
 4. Keep Windows host state and WSL state separate.
 5. Use the native package manager for each OS; do not duplicate ownership across package systems.

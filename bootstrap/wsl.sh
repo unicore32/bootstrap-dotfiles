@@ -8,13 +8,13 @@ readonly ROOT_DIR
 source "$ROOT_DIR/scripts/lib.sh"
 
 COMMAND="install"
-PROFILE="personal"
+PROFILE="common"
 DRY_RUN="false"
 COMPONENTS=""
 
 usage() {
-  echo 'Usage: ./bootstrap.sh [install|update] [--profile personal|work] [--components packages,chocolatey,dotfiles,mise,vscode,settings] [--dry-run]'
-  echo '       ./bootstrap.sh check [--profile personal|work]'
+  echo 'Usage: ./bootstrap.sh [install|update] [--profile common|personal] [--components packages,chocolatey,dotfiles,mise,vscode,settings] [--dry-run]'
+  echo '       ./bootstrap.sh check [--profile common|personal]'
 }
 
 while (($#)); do

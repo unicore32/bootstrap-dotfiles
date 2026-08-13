@@ -4,7 +4,7 @@ set -Eeuo pipefail
 readonly REPOSITORY_URL="https://github.com/unicore32/bootstrap-dotfiles.git"
 readonly DEFAULT_INSTALL_DIR="$HOME/.local/share/bootstrap-dotfiles"
 
-PROFILE="personal"
+PROFILE="common"
 INSTALL_DIR="$DEFAULT_INSTALL_DIR"
 BRANCH=""
 DRY_RUN="false"
@@ -24,7 +24,7 @@ run() {
 
 usage() {
   cat <<'EOF'
-Usage: install-macos.sh [--profile personal|work] [--branch BRANCH] [--install-dir PATH] [--dry-run]
+Usage: install-macos.sh [--profile common|personal] [--branch BRANCH] [--install-dir PATH] [--dry-run]
 EOF
 }
 
@@ -40,7 +40,7 @@ while (($#)); do
   shift
 done
 
-[[ "$PROFILE" == "personal" || "$PROFILE" == "work" ]] || die "invalid profile: $PROFILE"
+[[ "$PROFILE" == "common" || "$PROFILE" == "personal" ]] || die "invalid profile: $PROFILE"
 [[ "$(uname -s)" == "Darwin" ]] || die 'this Stage 0 installer currently supports macOS only'
 
 configure_homebrew_path() {
