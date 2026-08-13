@@ -12,5 +12,11 @@
   "terminal.integrated.fontFamily": "'HackGen35 Console NF', Menlo, Monaco, 'Courier New', monospace",
   "terminal.integrated.scrollback": 100000,
   "terminal.integrated.splitCwd": "inherited",
+  {{- if eq .chezmoi.os "windows" }}
+  "terminal.integrated.defaultProfile.windows": "PowerShell"
+  {{- else if eq .chezmoi.os "darwin" }}
   "terminal.integrated.defaultProfile.osx": "zsh"
+  {{- else }}
+  "terminal.integrated.defaultProfile.linux": "zsh"
+  {{- end }}
 }

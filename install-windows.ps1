@@ -3,8 +3,6 @@ param(
     [ValidateSet("common", "personal")]
     [string]$Profile = "common",
     [string]$Branch,
-    [ValidateSet("windows", "wsl", "all")]
-    [string]$Target = "all",
     [string]$InstallDir = (Join-Path $env:LOCALAPPDATA "bootstrap-dotfiles"),
     [switch]$DryRun
 )
@@ -155,12 +153,12 @@ if ($DryRun) {
     else {
         Write-Stage0 "[dry-run] clone or fast-forward $RepositoryUrl at $InstallDir"
     }
-    Write-Stage0 "[dry-run] & $InstallDir/bootstrap.ps1 install -Target $Target -Profile $Profile -DryRun"
+    Write-Stage0 "[dry-run] & $InstallDir/bootstrap.ps1 install -Profile $Profile -DryRun"
 }
 else {
     Install-Git
     $git = Get-GitCommand
     Validate-Branch -Git $git
     Update-Repository -Git $git
-    & (Join-Path $InstallDir "bootstrap.ps1") install -Target $Target -Profile $Profile
+    & (Join-Path $InstallDir "bootstrap.ps1") install -Profile $Profile
 }

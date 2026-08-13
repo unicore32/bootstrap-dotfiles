@@ -2,8 +2,6 @@
 param(
     [ValidateSet("install", "update", "check")]
     [string]$Command = "install",
-    [ValidateSet("windows", "wsl", "all")]
-    [string]$Target = "all",
     [ValidateSet("common", "personal")]
     [string]$Profile = "common",
     [string]$Components,
@@ -13,7 +11,6 @@ param(
 $ErrorActionPreference = "Stop"
 $arguments = @{
     Command = $Command
-    Target = $Target
     Profile = $Profile
     DryRun = $DryRun
 }

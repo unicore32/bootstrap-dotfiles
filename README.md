@@ -14,7 +14,7 @@ Supported environments:
 | Environment         | Profile    | Package manager | Applied state                              |
 | ------------------- | ---------- | --------------- | ------------------------------------------ |
 | 🍎 Personal macOS   | `personal` | Homebrew        | Common and personal                        |
-| 🪟 Personal Windows | `personal` | winget          | Windows applications and WSL orchestration |
+| 🪟 Personal Windows | `personal` | winget          | Windows applications and host settings     |
 | 🐧 Personal WSL     | `personal` | apt             | Linux CLI tools and runtimes               |
 | 🏢 Company macOS    | work repo  | Homebrew        | `common` from this repo, then work state   |
 
@@ -25,7 +25,7 @@ This repository manages:
 - A small shared Vim configuration for terminal editing
 - VS Code settings and extensions
 - Node.js, Python, and Go through mise
-- Windows-to-WSL bootstrap orchestration
+- Independent Windows host and WSL bootstrap entrypoints
 
 ## 🐚 Shell architecture
 
@@ -116,7 +116,7 @@ bootstrap-dotfiles/
 ├── bootstrap.ps1               # Windows dispatcher
 ├── bootstrap/
 │   ├── macos.sh                # Homebrew, chezmoi, mise, and VS Code orchestration
-│   ├── windows.ps1             # winget, chezmoi, mise, VS Code, and WSL orchestration
+│   ├── windows.ps1             # winget, chezmoi, mise, VS Code, and Windows settings
 │   └── wsl.sh                  # apt, chezmoi, mise, and VS Code orchestration
 ├── home/                       # chezmoi source state
 │   ├── .chezmoi.toml.tmpl      # Initial interactive profile selection
@@ -126,7 +126,8 @@ bootstrap-dotfiles/
 │   ├── dot_zshrc.tmpl
 │   ├── dot_config/             # Cross-platform and Linux configuration
 │   ├── Library/                # macOS-specific configuration
-│   └── AppData/                # Windows-specific configuration
+│   ├── AppData/                # Windows-specific configuration
+│   └── vscode/                 # Shared VS Code source templates
 ├── packages/
 │   ├── README.md                 # Application catalog and package policies
 │   ├── Brewfile.common
@@ -213,7 +214,7 @@ After the desired revision has been pushed to `main`, start a personal installat
 & ([scriptblock]::Create((Invoke-RestMethod -Uri "https://raw.githubusercontent.com/unicore32/bootstrap-dotfiles/main/install-windows.ps1"))) -Profile personal -Branch feature/foo
 ```
 
-The Stage 0 installer verifies that winget is available, installs Git when necessary, clones or fast-forward updates the repository at `%LOCALAPPDATA%\bootstrap-dotfiles`, and starts Stage 1. It may require a new PowerShell session after installing Git, WSL initialization, or elevation for the personal NTP setting; those prompts are intentionally not bypassed.
+The Stage 0 installer verifies that winget is available, installs Git when necessary, clones or fast-forward updates the repository at `%LOCALAPPDATA%\bootstrap-dotfiles`, and starts the Windows host bootstrap. It may require a new PowerShell session after installing Git or elevation for the personal NTP setting; those prompts are intentionally not bypassed. WSL installation and its first Ubuntu launch are separate steps.
 
 If PowerShell reports that script execution is disabled, allow it only for the current PowerShell process, then rerun the command above. This setting is cleared when the window closes.
 
@@ -234,13 +235,12 @@ Manual clone remains supported when Git is already installed:
 ```powershell
 git clone https://github.com/unicore32/bootstrap-dotfiles.git
 Set-Location bootstrap-dotfiles
-.\bootstrap.ps1 install -Target all -Profile personal -DryRun
-.\bootstrap.ps1 install -Target all -Profile personal
-# The same selection is forwarded to the WSL bootstrap for -Target wsl or all.
-.\bootstrap.ps1 install -Target all -Profile personal -Components packages,dotfiles -DryRun
+.\bootstrap.ps1 install -Profile personal -DryRun
+.\bootstrap.ps1 install -Profile personal
+.\bootstrap.ps1 install -Profile personal -Components packages,dotfiles -DryRun
 ```
 
-Available targets are `windows`, `wsl`, and `all`. A newly installed command may not become visible to the current PowerShell process; reopen the terminal and rerun the same command when instructed.
+The PowerShell entrypoint runs only Windows host responsibilities. A newly installed command may not become visible to the current PowerShell process; reopen the terminal and rerun the same command when instructed.
 
 Run a real `personal` Windows installation from an elevated PowerShell session when the NTP setting is not already configured. Dry runs do not require elevation.
 
@@ -257,7 +257,7 @@ bash bootstrap.sh install --profile personal --dry-run
 bash bootstrap.sh install --profile personal
 ```
 
-The Windows entrypoint can also invoke the WSL bootstrap for a repository stored on the Windows filesystem.
+WSL is bootstrapped independently inside Ubuntu. The Windows host bootstrap does not install, initialize, or invoke a WSL distribution.
 
 ### Commands
 
@@ -272,9 +272,9 @@ bash bootstrap.sh check   [--profile common|personal]
 🪟 Windows:
 
 ```powershell
-.\bootstrap.ps1 install [-Target windows|wsl|all] [-Profile common|personal] [-Components packages,chocolatey,dotfiles,mise,vscode,settings] [-DryRun]
-.\bootstrap.ps1 update  [-Target windows|wsl|all] [-Profile common|personal] [-Components packages,chocolatey,dotfiles,mise,vscode,settings] [-DryRun]
-.\bootstrap.ps1 check   [-Target windows|wsl|all] [-Profile common|personal]
+.\bootstrap.ps1 install [-Profile common|personal] [-Components packages,chocolatey,dotfiles,mise,vscode,settings] [-DryRun]
+.\bootstrap.ps1 update  [-Profile common|personal] [-Components packages,chocolatey,dotfiles,mise,vscode,settings] [-DryRun]
+.\bootstrap.ps1 check   [-Profile common|personal]
 ```
 
 `install` and `update` also accept an optional component selector. Omit it to
@@ -287,8 +287,8 @@ bash bootstrap.sh update --profile common --components mise,vscode
 ```
 
 ```powershell
-.\bootstrap.ps1 install -Target windows -Profile personal -Components packages,settings -DryRun
-.\bootstrap.ps1 update -Target all -Profile personal -Components dotfiles,mise
+.\bootstrap.ps1 install -Profile personal -Components packages,settings -DryRun
+.\bootstrap.ps1 update -Profile personal -Components dotfiles,mise
 ```
 
 | Component    | Responsibility                                    | Availability                                     |
@@ -301,11 +301,10 @@ bash bootstrap.sh update --profile common --components mise,vscode
 | `settings`   | Managed operating-system preferences              | macOS and Windows; skipped with a message on WSL |
 
 Selectors are comma-separated, case-insensitive names; surrounding whitespace
-is ignored. Empty names, unknown names, and duplicates are errors. Components
-are independent of Windows `-Target`: `windows`, `wsl`, and `all` choose the
-host(s), then the requested responsibilities run on each applicable host. For
-`-Target wsl` or `all`, the Windows dispatcher forwards the normalized selector
-to WSL. A selected component that does not exist on an OS is safely skipped with
+is ignored. Empty names, unknown names, and duplicates are errors. On Windows,
+the selected responsibilities run only on the Windows host. WSL components are
+selected through the Linux `bootstrap.sh` entrypoint inside Ubuntu. A selected
+component that does not exist on an OS is safely skipped with
 a message. A component run assumes its prerequisite command is already present
 when that command is normally supplied by `packages`; the `chocolatey`
 component installs its own Chocolatey prerequisite. Use
@@ -343,14 +342,21 @@ bash bootstrap.sh install --profile personal --dry-run
 bash bootstrap.sh install --profile personal
 ```
 
-On Windows, clone and run the Windows target from PowerShell. The `all` target
-will invoke the WSL bootstrap using the same checkout.
+On Windows, clone and run the Windows host bootstrap from PowerShell:
 
 ```powershell
 git clone https://github.com/unicore32/bootstrap-dotfiles.git
 Set-Location bootstrap-dotfiles
-.\bootstrap.ps1 install -Target all -Profile personal -DryRun
-.\bootstrap.ps1 install -Target all -Profile personal
+.\bootstrap.ps1 install -Profile personal -DryRun
+.\bootstrap.ps1 install -Profile personal
+```
+
+After WSL/Ubuntu has been installed and launched once, run the WSL bootstrap
+inside Ubuntu from a checkout available in the Linux filesystem:
+
+```bash
+bash bootstrap.sh install --profile personal --dry-run
+bash bootstrap.sh install --profile personal
 ```
 
 When working from a checkout, do not also run the remote Stage 0 installer for
@@ -379,6 +385,7 @@ Source-of-truth mapping:
 | Personal WSL CLI tools      | `mise/personal-wsl.toml`                         |
 | Managed files               | `home/`                                          |
 | Vim configuration           | `home/dot_vimrc`                                 |
+| Shared VS Code settings     | `home/vscode/`                                   |
 | VS Code extensions          | `vscode/extensions-*.txt`                        |
 | macOS and Windows settings  | `settings/`                                      |
 
@@ -457,6 +464,12 @@ One repository must own each destination file.
 
 VS Code has no general include mechanism for JSON settings. Common settings live here; company settings should use a separate VS Code `Work` Profile. Do not hard-code VS Code's internal profile identifier.
 
+The repository keeps VS Code's native per-OS destination paths, but the common
+settings and keybindings are edited only under `home/vscode/`. Thin chezmoi
+templates expand that shared source into `AppData`, `Library`, and
+`.config` as appropriate. The OS-specific terminal profile remains selected
+by the template; the source files are not symlinks.
+
 ## 🛠️ Development workflow
 
 ### Adding or changing packages
@@ -519,8 +532,8 @@ bash bootstrap.sh install --profile personal --components packages,dotfiles --dr
 ```
 
 ```powershell
-.\bootstrap.ps1 install -Target windows -Profile personal -DryRun
-.\bootstrap.ps1 install -Target all -Profile personal -Components packages,dotfiles -DryRun
+.\bootstrap.ps1 install -Profile personal -DryRun
+.\bootstrap.ps1 install -Profile personal -Components packages,dotfiles -DryRun
 ```
 
 Also run:

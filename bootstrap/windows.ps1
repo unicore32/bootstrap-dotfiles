@@ -2,8 +2,6 @@
 param(
     [ValidateSet("install", "update", "check")]
     [string]$Command = "install",
-    [ValidateSet("windows", "wsl", "all")]
-    [string]$Target = "all",
     [ValidateSet("common", "personal")]
     [string]$Profile = "common",
     [string]$Components,
@@ -219,22 +217,6 @@ function Install-MiseTools {
     }
 }
 
-function Invoke-WSLBootstrap {
-    if (-not (Get-Command wsl.exe -ErrorAction SilentlyContinue)) {
-        throw "wsl.exe is not available. Install WSL with: wsl --install -d Ubuntu"
-    }
-    $linuxRoot = (& wsl.exe wslpath -a $RootDir).Trim()
-    if ($LASTEXITCODE -ne 0 -or -not $linuxRoot) {
-        throw "Could not translate repository path for WSL. Complete the first Ubuntu launch first."
-    }
-    $dryRunArg = if ($DryRun) { " --dry-run" } else { "" }
-    $componentsArg = if ($SelectedComponents.Count) { " --components $($SelectedComponents -join ',')" } else { "" }
-    $commandLine = "'$linuxRoot/bootstrap/wsl.sh' $Command --profile $Profile$componentsArg$dryRunArg"
-    Write-Step "Running WSL bootstrap"
-    & wsl.exe bash -lc $commandLine
-    if ($LASTEXITCODE -ne 0) { throw "WSL bootstrap failed (exit $LASTEXITCODE)" }
-}
-
 function Invoke-HealthCheck {
     $failed = $false
     foreach ($name in @("git", "chezmoi", "winget")) {
@@ -262,25 +244,19 @@ function Set-PersonalNtp {
 }
 
 if ($Command -eq "check") {
-    if ($Target -in @("windows", "all")) { Invoke-HealthCheck }
-    if ($Target -in @("wsl", "all")) { Invoke-WSLBootstrap }
+    Invoke-HealthCheck
     return
 }
 
-if ($Target -in @("windows", "all")) {
-    if (Test-ComponentSelected "chocolatey") { Install-Chocolatey }
-    if (Test-ComponentSelected "packages") {
-        Install-WingetPackages
-        Show-ManualWindowsApplications
-    }
-    if (Test-ComponentSelected "dotfiles") { Install-Dotfiles }
-    if (Test-ComponentSelected "mise") { Install-MiseTools }
-    if (Test-ComponentSelected "vscode") { Install-VSCodeExtensions }
-    if (Test-ComponentSelected "settings") { Set-PersonalNtp }
+if (Test-ComponentSelected "chocolatey") { Install-Chocolatey }
+if (Test-ComponentSelected "packages") {
+    Install-WingetPackages
+    Show-ManualWindowsApplications
 }
-if ($Target -in @("wsl", "all")) {
-    Invoke-WSLBootstrap
-}
-if (-not $DryRun -and $SelectedComponents.Count -eq 0 -and $Target -in @("windows", "all")) {
+if (Test-ComponentSelected "dotfiles") { Install-Dotfiles }
+if (Test-ComponentSelected "mise") { Install-MiseTools }
+if (Test-ComponentSelected "vscode") { Install-VSCodeExtensions }
+if (Test-ComponentSelected "settings") { Set-PersonalNtp }
+if (-not $DryRun -and $SelectedComponents.Count -eq 0) {
     Invoke-HealthCheck
 }
